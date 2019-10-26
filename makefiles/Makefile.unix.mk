@@ -162,6 +162,7 @@ ifeq ($(PLATFORM),LINUX)
 
   SWIG_PYTHON_LIB_SUFFIX = so
   SWIG_DOTNET_LIB_SUFFIX = so
+  SWIG_GO_LIB_EXT = so
   LINK_CMD = $(DYNAMIC_LD)
   PRE_LIB = -L$(OR_ROOT_FULL)/lib -l
   POST_LIB =
@@ -215,6 +216,7 @@ ifeq ($(PLATFORM),MACOSX)
 
   SWIG_PYTHON_LIB_SUFFIX = so# To overcome a bug in Mac OS X loader.
   SWIG_DOTNET_LIB_SUFFIX = dylib
+  SWIG_GO_LIB_EXT = dylib
   LINK_CMD = clang++ -dynamiclib \
  -Wl,-search_paths_first \
  -Wl,-headerpad_max_install_names \
