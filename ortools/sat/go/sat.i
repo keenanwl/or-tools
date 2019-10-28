@@ -28,34 +28,22 @@ typedef uint64_t uint64;
 
 %module(directors="1") sat_wrapper
 
-%define PROTO_INPUT(CppProtoType, GoProtoType, param_name)
-%typemap(gotype) PROTO_TYPE* INPUT, PROTO_TYPE& INPUT "GoProtoType"
-%typemap(imtype) PROTO_TYPE* INPUT, PROTO_TYPE& INPUT "[]byte"
-%typemap(goin) PROTO_TYPE* INPUT, PROTO_TYPE& INPUT {
-	// hello go
-	bytes, err := proto.Marshal(&$input)
-	if err != nil {
-		panic(err)
-	}
-	$result = bytes
-}
-%typemap(in) PROTO_TYPE* INPUT (CppProtoType temp), PROTO_TYPE& INPUT (CppProtoType temp) {
-  // hello c
-	bool parsed_ok = temp.ParseFromArray($input.array, $input.len);
-	if (!parsed_ok) {
-		_swig_gopanic("Unable to parse CppProtoType protocol message.");
-	}
-	$1 = &temp;
-}
+%include "ortools/util/go/proto.i"
 
-%apply PROTO_TYPE& INPUT { const CppProtoType& param_name }
-%apply PROTO_TYPE& INPUT { CppProtoType& param_name }
-%apply PROTO_TYPE* INPUT { const CppProtoType* param_name }
-%apply PROTO_TYPE* INPUT { CppProtoType* param_name }
+PROTO_INPUT(operations_research::sat::CpModelProto,
+	CpModelProto,
+	model_proto);
 
-%enddef // PROTO_INPUT
+PROTO_INPUT(operations_research::sat::SatParameters,
+	SatParameters,
+	parameters);
 
-PROTO_INPUT(operations_research::sat::CpModelProto, CpModelProto, model_proto);
+PROTO_INPUT(operations_research::sat::CpSolverResponse,
+	CpSolverResponse,
+	response);
+
+PROTO2_RETURN(operations_research::sat::CpSolverResponse,
+	CpSolverResponse);
 
 %ignoreall
 
@@ -64,7 +52,10 @@ PROTO_INPUT(operations_research::sat::CpModelProto, CpModelProto, model_proto);
 
 // Wrap the relevant part of the SatHelper.
 %unignore operations_research::sat::SatHelper;
-%unignore operations_research::sat::SatHelper::ValidateModel;
+%rename (solve) operations_research::sat::SatHelper::Solve;
+%rename (solveWithParameters) operations_research::sat::SatHelper::SolveWithParameters;
+
+%rename (validateModel) operations_research::sat::SatHelper::ValidateModel;
 
 %include "ortools/sat/swig_helper.h"
 

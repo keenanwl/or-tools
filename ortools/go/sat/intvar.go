@@ -85,3 +85,7 @@ func (i *intVar) DisplayBounds() string {
 	}
 	return out
 }
+
+func (i *intVar) String() string {
+	return i.modelProto.String()
+}
