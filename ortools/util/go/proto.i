@@ -75,7 +75,7 @@
 %typemap(gotype) CppProtoType "GoProtoType"
 %typemap(imtype) CppProtoType "[]uint8"
 %typemap(goout) CppProtoType {
-{
+
   var pb GoProtoType
   goString := $1
 
@@ -95,22 +95,13 @@
   }
 
   return pb
-
-}
 }
 
 %typemap(out) CppProtoType {
   const int size = $1.ByteSize();
   uint8* im = new uint8[size];
   $1.SerializeWithCachedSizesToArray(im);
-
-  char* returnString = new char[size];
-  for (int c = 0; c < size; c++) {
-    returnString += im[c];
-  }
-
   $result = (_goslice_){im, size};
-
 }
 
 %enddef // PROTO2_RETURN

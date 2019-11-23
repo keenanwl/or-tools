@@ -3,28 +3,28 @@ package sat
 import (
 	"fmt"
 
-	"or-tools/ortools/go/gen"
+	"or-tools/ortools/go/sat/gen"
 )
 
 /** An integer variable. */
-type intVar struct {
+type IntVar struct {
 	modelProto *gen.CpModelProto
 	varIndex   int
 	VarProto   *gen.IntegerVariableProto
 	negation   *notBoolVar
 }
 
-func newIntVarLowerUpperBounds(modelProto *gen.CpModelProto, lb int64, ub int64, name string) *intVar {
+func newIntVarLowerUpperBounds(modelProto *gen.CpModelProto, lb int64, ub int64, name string) *IntVar {
 	return newIntVarBounds(modelProto, []int64{lb, ub}, name)
 }
 
-func newIntVarBounds(modelProto *gen.CpModelProto, bounds []int64, name string) *intVar {
+func newIntVarBounds(modelProto *gen.CpModelProto, bounds []int64, name string) *IntVar {
 	varProto := gen.IntegerVariableProto{
 		Name:   name,
 		Domain: bounds,
 	}
 
-	intVar := &intVar{
+	intVar := &IntVar{
 		modelProto: modelProto,
 		varIndex:   len(modelProto.GetVariables()),
 		VarProto:   &varProto,
@@ -36,17 +36,29 @@ func newIntVarBounds(modelProto *gen.CpModelProto, bounds []int64, name string) 
 }
 
 /** Returns the name of the variable given upon creation. */
-func (i *intVar) Name() string {
+func (i *IntVar) Name() string {
 	return i.VarProto.GetName()
 }
 
 /** Internal, returns the index of the variable in the underlying CpModelProto. */
-func (i *intVar) Index() int {
+func (i *IntVar) Index() int {
 	return i.varIndex
 }
 
+func (i *IntVar) NumElements() int {
+	return 1
+}
+
+func (i *IntVar) Variable(index int) *IntVar {
+	return i
+}
+
+func (i *IntVar) Coefficient(index int) int {
+	return 1
+}
+
 /** Returns the negation of a boolean variable. */
-func (i *intVar) Not() Literal {
+func (i *IntVar) Not() Literal {
 	if i.negation == nil {
 		i.negation = newNotBoolVar(i)
 	}
@@ -54,7 +66,7 @@ func (i *intVar) Not() Literal {
 }
 
 /** Returns a short string describing the variable. */
-func (i *intVar) ShortString() string {
+func (i *IntVar) ShortString() string {
 	varProto := i.VarProto
 	if len(varProto.GetName()) == 0 {
 		domain := varProto.GetDomain()
@@ -69,7 +81,7 @@ func (i *intVar) ShortString() string {
 }
 
 /** Returns the domain as a string without the enclosing []. */
-func (i *intVar) DisplayBounds() string {
+func (i *IntVar) DisplayBounds() string {
 	out := ""
 	varProto := i.VarProto
 	domain := varProto.GetDomain()
@@ -86,6 +98,6 @@ func (i *intVar) DisplayBounds() string {
 	return out
 }
 
-func (i *intVar) String() string {
+func (i *IntVar) String() string {
 	return i.modelProto.String()
 }

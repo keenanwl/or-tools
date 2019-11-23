@@ -9,26 +9,6 @@ import (
 //import "gotest.tools/assert"
 //import "gotest.tools/assert/cmp"
 
-func TestCpModel_Schedule(t *testing.T) {
-
-	cpModel := NewCpModel()
-
-	startVar := cpModel.NewIntVar(0, 100, "start")
-	endVar := cpModel.NewIntVar(0, 100, "end")
-
-	duration := 1
-	intervalVar := cpModel.NewIntervalVar(*startVar, duration, *endVar, "interval")
-
-	fmt.Println("VALIDATE", cpModel.Validate())
-	fmt.Println("MODEL", cpModel.proto.String())
-	fmt.Printf("start = %s, duration = %v, end = %s, interval = %s", startVar, duration, endVar, intervalVar)
-
-	solver := cpSolver{}
-	out := solver.Solve(*cpModel)
-	fmt.Println(out)
-
-}
-
 func TestCpModel_Validate(t *testing.T) {
 	cpModel := NewCpModel()
 
