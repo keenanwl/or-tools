@@ -33,8 +33,6 @@ func (m *cpModel) Name() string {
 	return m.proto.Name
 }
 
-// Integer variables.
-
 /** Creates an integer variable with domain [lb, ub]. */
 func (m *cpModel) NewIntVar(lb int64, ub int64, name string) *IntVar {
 	return newIntVarLowerUpperBounds(m.proto, lb, ub, name)
@@ -45,15 +43,6 @@ func (m *cpModel) Validate() string {
 	return gen.SatHelperValidateModel(*m.proto)
 }
 
-/** Adds a minimization objective of a linear expression. */
-//public void minimize(LinearExpr expr) {
-//CpObjectiveProto.Builder obj = modelBuilder.getObjectiveBuilder();
-//for (int i = 0; i < expr.numElements(); ++i) {
-//obj.addVars(expr.getVariable(i).getIndex());
-//obj.addCoeffs(expr.getCoefficient(i));
-//}
-//}
-
 func (m *cpModel) Minimize(expr LinearExpr) {
 
 	for i := 0; i < expr.NumElements(); i++ {
@@ -63,7 +52,6 @@ func (m *cpModel) Minimize(expr LinearExpr) {
 
 }
 
-/** Adds {@code target == Max(vars)}. */
 func (m *cpModel) AddMaxEquality(target IntVar, vars []IntVar) {
 
 	varIndexes := make([]int32, 0)
@@ -86,14 +74,6 @@ func (m *cpModel) AddMaxEquality(target IntVar, vars []IntVar) {
 
 }
 
-/**
- * Adds {@code NoOverlap(intervalVars)}.
- *
- * <p>A NoOverlap constraint ensures that all present intervals do not overlap in time.
- *
- * @param intervalVars the list of interval variables to constrain
- * @return an instance of the Constraint class
- */
 func (m *cpModel) AddNoOverlap(intervalVars []intervalVar) *gen.ConstraintProto {
 
 	intervals := make([]int32, 0)
@@ -114,5 +94,68 @@ func (m *cpModel) AddNoOverlap(intervalVars []intervalVar) *gen.ConstraintProto 
 	m.proto.Constraints = append(m.proto.Constraints, cp)
 
 	return cp
+
+}
+
+func (m *cpModel) AddAllDifferent(vars []IntVar) *gen.ConstraintProto {
+
+	allIndexes := make([]int32, 0)
+	for i := range vars {
+		allIndexes = append(allIndexes, int32(vars[i].Index()))
+	}
+
+	diff := &gen.ConstraintProto{
+		Name:               "name",
+		EnforcementLiteral: nil,
+		Constraint: &gen.ConstraintProto_AllDiff{
+			AllDiff: &gen.AllDifferentConstraintProto{
+				Vars: allIndexes,
+			},
+		},
+	}
+
+	m.proto.Constraints = append(m.proto.Constraints, diff)
+
+	return diff
+
+}
+
+func (m *cpModel) AddEquality(expr LinearExpr, num int) {
+
+	constraint := m.linearExpressionInDomain(expr, NewDomain(int64(num)))
+	m.proto.Constraints = append(m.proto.Constraints, constraint)
+
+}
+
+func (m *cpModel) linearExpressionInDomain(expr LinearExpr, domain *gen.IntegerVariableProto) *gen.ConstraintProto {
+
+	linear := &gen.LinearConstraintProto{
+		Vars:   make([]int32, 0),
+		Coeffs: make([]int64, 0),
+		Domain: domain.Domain,
+	}
+
+	for i := 0; i < expr.NumElements(); i++ {
+		linear.Vars = append(linear.Vars, int32(expr.Variable(i).Index()))
+		linear.Coeffs = append(linear.Coeffs, int64(expr.Coefficient(i)))
+	}
+
+	constraint := &gen.ConstraintProto{
+		Name:               "name",
+		EnforcementLiteral: nil,
+		Constraint: &gen.ConstraintProto_Linear{
+			Linear: linear,
+		},
+	}
+
+	return constraint
+
+}
+
+func NewDomain(num int64) *gen.IntegerVariableProto {
+
+	return &gen.IntegerVariableProto{
+		Domain: []int64{num, num},
+	}
 
 }
