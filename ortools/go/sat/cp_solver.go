@@ -1,6 +1,8 @@
 package sat
 
-import "or-tools/ortools/go/gen"
+import (
+	"or-tools/ortools/go/sat/gen"
+)
 
 type cpSolver struct {
 	solveParameters *gen.CpModelProto

@@ -7,10 +7,10 @@ import "fmt"
  * instead.
  */
 type notBoolVar struct {
-	boolVar *intVar
+	boolVar *IntVar
 }
 
-func newNotBoolVar(boolVar *intVar) *notBoolVar {
+func newNotBoolVar(boolVar *IntVar) *notBoolVar {
 	return &notBoolVar{boolVar: boolVar}
 }
 
