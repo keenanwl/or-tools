@@ -35,12 +35,10 @@ func newIntVarBounds(modelProto *gen.CpModelProto, bounds []int64, name string) 
 	return intVar
 }
 
-/** Returns the name of the variable given upon creation. */
 func (i *IntVar) Name() string {
 	return i.VarProto.GetName()
 }
 
-/** Internal, returns the index of the variable in the underlying CpModelProto. */
 func (i *IntVar) Index() int {
 	return i.varIndex
 }
