@@ -8,46 +8,43 @@ import (
 	"or-tools/ortools/go/sat/gen"
 )
 
-type cpModel struct {
+type CpModel struct {
 	proto *gen.CpModelProto
 }
 
-func NewCpModel() *cpModel {
-	return &cpModel{
+func NewCpModel() *CpModel {
+	return &CpModel{
 		proto: &gen.CpModelProto{
 			Objective: &gen.CpObjectiveProto{
-				Vars:                 make([]int32, 0),
-				Coeffs:               make([]int64, 0),
-				Offset:               0,
-				ScalingFactor:        0,
-				Domain:               make([]int64, 0),
-				XXX_NoUnkeyedLiteral: struct{}{},
-				XXX_unrecognized:     nil,
-				XXX_sizecache:        0,
+				Vars:          make([]int32, 0),
+				Coeffs:        make([]int64, 0),
+				Offset:        0,
+				ScalingFactor: 0,
+				Domain:        make([]int64, 0),
 			},
 		},
 	}
 }
 
-func (m *cpModel) SetName(name string) {
+func (m *CpModel) SetName(name string) {
 	m.proto.Name = name
 }
 
-func (m *cpModel) Name() string {
+func (m *CpModel) Name() string {
 	return m.proto.Name
 }
 
 /** Creates an integer variable with domain [lb, ub]. */
-func (m *cpModel) NewIntVar(lb int64, ub int64, name string) *IntVar {
+func (m *CpModel) NewIntVar(lb int64, ub int64, name string) *IntVar {
 	return newIntVarLowerUpperBounds(m.proto, lb, ub, name)
 }
 
 /** Returns a non empty string explaining the issue if the model is invalid. */
-func (m *cpModel) Validate() string {
+func (m *CpModel) Validate() string {
 	return gen.SatHelperValidateModel(*m.proto)
 }
 
-func (m *cpModel) Minimize(expr LinearExpr) {
+func (m *CpModel) Minimize(expr LinearExpr) {
 
 	for i := 0; i < expr.NumElements(); i++ {
 		m.proto.Objective.Coeffs = append(m.proto.Objective.Coeffs, int64(expr.Coefficient(i)))
@@ -56,7 +53,7 @@ func (m *cpModel) Minimize(expr LinearExpr) {
 
 }
 
-func (m *cpModel) AddMaxEquality(target IntVar, vars []IntVar, name string) *gen.ConstraintProto {
+func (m *CpModel) AddMaxEquality(target IntVar, vars []IntVar, name string) *gen.ConstraintProto {
 
 	varIndexes := make([]int32, 0)
 	for i := range vars {
@@ -80,7 +77,7 @@ func (m *cpModel) AddMaxEquality(target IntVar, vars []IntVar, name string) *gen
 
 }
 
-func (m *cpModel) AddNoOverlap(intervalVars []intervalVar, name string) *gen.ConstraintProto {
+func (m *CpModel) AddNoOverlap(intervalVars []intervalVar, name string) *gen.ConstraintProto {
 
 	intervals := make([]int32, 0)
 	for i := range intervalVars {
@@ -103,7 +100,7 @@ func (m *cpModel) AddNoOverlap(intervalVars []intervalVar, name string) *gen.Con
 
 }
 
-func (m *cpModel) AddAllDifferent(vars []IntVar, name string) *gen.ConstraintProto {
+func (m *CpModel) AddAllDifferent(vars []IntVar, name string) *gen.ConstraintProto {
 
 	allIndexes := make([]int32, 0)
 	for i := range vars {
@@ -126,28 +123,40 @@ func (m *cpModel) AddAllDifferent(vars []IntVar, name string) *gen.ConstraintPro
 
 }
 
-func (m *cpModel) AddEquality(expr LinearExpr, num int, name string) {
+func (m *CpModel) AddEquality(expr LinearExpr, num int, name string) {
 
-	constraint := m.linearExpressionInDomain(expr, NewDomain(int64(num)), name)
+	constraint := &gen.ConstraintProto{
+		Name:               name,
+		EnforcementLiteral: nil,
+		Constraint:         m.linearExpressionInDomain(expr, NewDomain(int64(num)), name),
+	}
 	m.proto.Constraints = append(m.proto.Constraints, constraint)
 
 }
 
-func (m *cpModel) AddEquality2(left LinearExpr, right LinearExpr, name string) {
+func (m *CpModel) AddEquality2(left LinearExpr, right LinearExpr, name string) {
 
-	constraint := m.linearExpressionInDomain(NewDifference(left, right), NewDomain(0), name)
+	constraint := &gen.ConstraintProto{
+		Name:               name,
+		EnforcementLiteral: nil,
+		Constraint:         m.linearExpressionInDomain(NewDifference(left, right), NewDomain(0), name),
+	}
 	m.proto.Constraints = append(m.proto.Constraints, constraint)
 
 }
 
-func (m *cpModel) AddLinearConstraint2(expr LinearExpr, lb int, ub int, name string) {
+func (m *CpModel) AddLinearConstraint2(expr LinearExpr, lb int, ub int, name string) {
 
-	constraint := m.linearExpressionInDomain(expr, NewDomain2(int64(lb), int64(ub)), name)
+	constraint := &gen.ConstraintProto{
+		Name:               name,
+		EnforcementLiteral: nil,
+		Constraint:         m.linearExpressionInDomain(expr, NewDomain2(int64(lb), int64(ub)), name),
+	}
 	m.proto.Constraints = append(m.proto.Constraints, constraint)
 
 }
 
-func (m *cpModel) linearExpressionInDomain(expr LinearExpr, domain *gen.IntegerVariableProto, name string) *gen.ConstraintProto {
+func (m *CpModel) linearExpressionInDomain(expr LinearExpr, domain *gen.IntegerVariableProto, name string) *gen.ConstraintProto_Linear {
 
 	linear := &gen.LinearConstraintProto{
 		Vars:   make([]int32, 0),
@@ -160,19 +169,13 @@ func (m *cpModel) linearExpressionInDomain(expr LinearExpr, domain *gen.IntegerV
 		linear.Coeffs = append(linear.Coeffs, int64(expr.Coefficient(i)))
 	}
 
-	constraint := &gen.ConstraintProto{
-		Name:               name,
-		EnforcementLiteral: nil,
-		Constraint: &gen.ConstraintProto_Linear{
-			Linear: linear,
-		},
+	return &gen.ConstraintProto_Linear{
+		Linear: linear,
 	}
-
-	return constraint
 
 }
 
-func (m *cpModel) AddEqualities(entities []IntVar, equalities []int, name string) {
+func (m *CpModel) AddEqualities(entities []IntVar, equalities []int, name string) {
 
 	for i := 0; i < len(equalities)-1; i++ {
 		m.AddEquality2(&entities[equalities[i]], &entities[equalities[i+1]], name)
@@ -189,7 +192,7 @@ func NewMatrix64(rows, cols int) [][]int64 {
 }
 
 // Helper from tests class?
-func (m *cpModel) AddAllowedAssignmentsUnpacked(
+func (m *CpModel) AddAllowedAssignmentsUnpacked(
 	entities []IntVar,
 	allowedAssignments []int64,
 	allowedAssignmentValues []int,
@@ -213,7 +216,7 @@ func (m *cpModel) AddAllowedAssignmentsUnpacked(
 
 }
 
-func (m *cpModel) AddAllowedAssignments(variables []IntVar, tuplesList [][]int64, name string) (*gen.ConstraintProto_Table, error) {
+func (m *CpModel) AddAllowedAssignments(variables []IntVar, tuplesList [][]int64, name string) (*gen.ConstraintProto_Table, error) {
 
 	tableVariables := []int32{}
 	for i := range variables {
@@ -251,9 +254,14 @@ func (m *cpModel) AddAllowedAssignments(variables []IntVar, tuplesList [][]int64
 
 }
 
-func (m *cpModel) AddGreaterOrEqual(expr LinearExpr, val int, name string) {
+func (m *CpModel) AddGreaterOrEqual(expr LinearExpr, val int, name string) {
 
-	constraint := m.linearExpressionInDomain(expr, NewDomain2(int64(val), math.MaxInt64), name)
+	constraint := &gen.ConstraintProto{
+		Name:               name,
+		EnforcementLiteral: nil,
+		Constraint:         m.linearExpressionInDomain(expr, NewDomain2(int64(val), math.MaxInt64), name),
+	}
+
 	m.proto.Constraints = append(m.proto.Constraints, constraint)
 
 }
@@ -270,7 +278,7 @@ func NewDomain2(lb, ub int64) *gen.IntegerVariableProto {
 	}
 }
 
-func (m *cpModel) AddForbiddenAssignments(variables []IntVar, tuplesList [][]int64, name string) (*gen.ConstraintProto_Table, error) {
+func (m *CpModel) AddForbiddenAssignments(variables []IntVar, tuplesList [][]int64, name string) (*gen.ConstraintProto_Table, error) {
 
 	table, err := m.AddAllowedAssignments(variables, tuplesList, name)
 	if err != nil {
@@ -283,7 +291,7 @@ func (m *cpModel) AddForbiddenAssignments(variables []IntVar, tuplesList [][]int
 
 }
 
-func (m *cpModel) AddForbiddenAssignmentsUnpacked(forbiddenAssignmentsValues []int, forbiddenAssignments []int, entities []IntVar, name string) (*gen.ConstraintProto_Table, error) {
+func (m *CpModel) AddForbiddenAssignmentsUnpacked(forbiddenAssignmentsValues []int, forbiddenAssignments []int, entities []IntVar, name string) (*gen.ConstraintProto_Table, error) {
 
 	specificEntities := make([]IntVar, len(forbiddenAssignments))
 	for i := 0; i < len(forbiddenAssignments); i++ {

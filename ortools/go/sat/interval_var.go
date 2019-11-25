@@ -25,7 +25,7 @@ var domains = make(map[int]bool, 0)
  *
  * Internally, it ensures that {@code start + size == end}.
  */
-func (m *cpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name string) *intervalVar {
+func (m *CpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name string) *intervalVar {
 
 	varProto := gen.IntervalConstraintProto{
 		Start: int32(start.Index()),
@@ -53,7 +53,7 @@ func (m *cpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name s
 
 }
 
-func (m *cpModel) NewFixedInterval(startIndex int, sizeIndex int, name string) *intervalVar {
+func (m *CpModel) NewFixedInterval(startIndex int, sizeIndex int, name string) *intervalVar {
 
 	varProto := gen.IntervalConstraintProto{
 		Start: int32(m.IndexFromConstant(startIndex)),
@@ -81,7 +81,7 @@ func (m *cpModel) NewFixedInterval(startIndex int, sizeIndex int, name string) *
 
 }
 
-func (m *cpModel) IndexFromConstant(constant int) int {
+func (m *CpModel) IndexFromConstant(constant int) int {
 
 	variableCount := m.VariableCount()
 
@@ -99,11 +99,11 @@ func (m *cpModel) IndexFromConstant(constant int) int {
 
 }
 
-func (m *cpModel) VariableCount() int {
+func (m *CpModel) VariableCount() int {
 	return len(m.proto.Variables)
 }
 
-func (m *cpModel) ConstraintCount() int {
+func (m *CpModel) ConstraintCount() int {
 	return len(m.proto.Constraints)
 }
 
