@@ -18,8 +18,8 @@ func (s *SumOfVariables) NumElements() int {
 	return len(s.variables)
 }
 
-func (s *SumOfVariables) Variable(index int) IntVar {
-	return s.variables[index]
+func (s *SumOfVariables) Variable(index int) *IntVar {
+	return &s.variables[index]
 }
 
 func (s *SumOfVariables) Coefficient(index int) int {
