@@ -2,11 +2,149 @@ package sat
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"testing"
 
 	"or-tools/ortools/go/sat/gen"
 )
+
+func TestCrashInPresolve(t *testing.T) {
+
+	model := NewCpModel()
+
+	x := model.NewIntVar(0, 5, "x")
+	y := model.NewIntVar(0, 5, "Y")
+	model.AddLinearConstraint2(InitSumOfVariables([]IntVar{*x, *y}), 0, 1)
+
+	obj := model.NewIntVar(0, 3, "obj")
+	model.AddGreaterOrEqual(obj, 2)
+	model.AddMaxEquality(*obj, []IntVar{*x, *y})
+	model.Minimize(obj)
+
+	solver := cpSolver{}
+	status := solver.Solve(*model)
+
+	if status.Status != gen.CpSolverStatus_INFEASIBLE {
+		t.Fatalf("expected status: Infeasible, got status: %s", status.Status)
+	}
+
+}
+
+func TestCpModel_TestCrashInSolveWithAllowedAssignment(t *testing.T) {
+
+	model := NewCpModel()
+	const numEntityOne = 50000
+	const numEntityTwo = 100
+
+	entitiesOne := [numEntityOne]IntVar{}
+
+	for i := 0; i < len(entitiesOne); i++ {
+		entitiesOne[i] = *model.NewIntVar(1, numEntityTwo, "E"+strconv.Itoa(i))
+	}
+
+	allAllowedValues := NewMatrix64(numEntityTwo, len(entitiesOne))
+
+	for i := 0; i < numEntityTwo; i++ {
+		for j := 0; j < len(entitiesOne); j++ {
+			allAllowedValues[i][j] = int64(i)
+		}
+	}
+
+	_, err := model.AddAllowedAssignments(entitiesOne[:], allAllowedValues[:], "Table")
+	if err != nil {
+		t.Fatalf("got error adding table: %s", err)
+	}
+
+	for i := 0; i < len(entitiesOne); i++ {
+		r := rand.New(rand.NewSource(numEntityTwo))
+		model.AddEquality(&entitiesOne[i], r.Int())
+	}
+
+	solver := cpSolver{}
+	status := solver.Solve(*model)
+
+	if status.Status != gen.CpSolverStatus_INFEASIBLE {
+		t.Fatalf("expecting status infeasible, got: %s", status.Status)
+	}
+
+}
+
+func TestCpModel_CrashEquality(t *testing.T) {
+
+	model := NewCpModel()
+	entities := [20]IntVar{}
+	for i := 0; i < len(entities); i++ {
+		entities[i] = *model.NewIntVar(1, 5, "E"+strconv.Itoa(i))
+	}
+
+	equalities := []int{18, 4, 19, 3, 12}
+	model.AddEqualities(entities[:], equalities)
+
+	allowedAssignments := []int64{12, 8, 15}
+	allowedAssignmentValues := []int{1, 3}
+
+	_, err := model.AddAllowedAssignmentsUnpacked(entities[:], allowedAssignments, allowedAssignmentValues, "Allowed assignments")
+	if err != nil {
+		t.Fatalf("unepected error adding allowed assignment condition")
+	}
+
+	forbiddenAssignments1 := []int{6, 15, 19}
+	forbiddenAssignments1Values := []int{3}
+	forbiddenAssignments2 := []int{10, 19}
+	forbiddenAssignments2Values := []int{4}
+	forbiddenAssignments3 := []int{18, 0, 9, 7}
+	forbiddenAssignments3Values := []int{4}
+	forbiddenAssignments4 := []int{14, 11}
+	forbiddenAssignments4Values := []int{1, 2, 3, 4, 5}
+	forbiddenAssignments5 := []int{5, 16, 1, 3}
+	forbiddenAssignments5Values := []int{1, 2, 3, 4, 5}
+	forbiddenAssignments6 := []int{2, 6, 11, 4}
+	forbiddenAssignments6Values := []int{1, 2, 3, 4, 5}
+	forbiddenAssignments7 := []int{6, 18, 12, 2, 9, 14}
+	forbiddenAssignments7Values := []int{1, 2, 3, 4, 5}
+
+	_, err = model.AddForbiddenAssignmentsUnpacked(forbiddenAssignments1Values, forbiddenAssignments1, entities[:], "Forbidden1")
+	if err != nil {
+		t.Fatalf("error adding forbidden assignements 1")
+	}
+	_, err = model.AddForbiddenAssignmentsUnpacked(forbiddenAssignments2Values, forbiddenAssignments2, entities[:], "Forbidden2")
+	if err != nil {
+		t.Fatalf("error adding forbidden assignements 2")
+	}
+	_, err = model.AddForbiddenAssignmentsUnpacked(forbiddenAssignments3Values, forbiddenAssignments3, entities[:], "Forbidden3")
+	if err != nil {
+		t.Fatalf("error adding forbidden assignements 3")
+	}
+	_, err = model.AddForbiddenAssignmentsUnpacked(forbiddenAssignments4Values, forbiddenAssignments4, entities[:], "Forbidden4")
+	if err != nil {
+		t.Fatalf("error adding forbidden assignements 4")
+	}
+	_, err = model.AddForbiddenAssignmentsUnpacked(forbiddenAssignments5Values, forbiddenAssignments5, entities[:], "Forbidden5")
+	if err != nil {
+		t.Fatalf("error adding forbidden assignements 5")
+	}
+	_, err = model.AddForbiddenAssignmentsUnpacked(forbiddenAssignments6Values, forbiddenAssignments6, entities[:], "Forbidden6")
+	if err != nil {
+		t.Fatalf("error adding forbidden assignements 6")
+	}
+	_, err = model.AddForbiddenAssignmentsUnpacked(forbiddenAssignments7Values, forbiddenAssignments7, entities[:], "Forbidden7")
+	if err != nil {
+		t.Fatalf("error adding forbidden assignements 7")
+	}
+
+	configuration := []int{5, 4, 2, 3, 3, 3, 4, 3, 3, 1, 4, 4, 3, 1, 4, 1, 4, 4, 3, 3}
+	for i := 0; i < len(configuration); i++ {
+		model.AddEquality(&entities[i], configuration[i])
+	}
+
+	solver := cpSolver{}
+	status := solver.Solve(*model)
+	if status.Status != gen.CpSolverStatus_INFEASIBLE {
+		t.Fatalf("expected infeasible, got: %s", status.Status)
+	}
+
+}
 
 func TestCpModel_Sudoku_sat(t *testing.T) {
 
@@ -90,7 +228,7 @@ func TestCpModel_Sudoku_sat(t *testing.T) {
 	status := solver.Solve(*model)
 
 	if status.Status != gen.CpSolverStatus_OPTIMAL {
-		t.Fatalf("Expecting status Optimal, got: %s", status.Status)
+		t.Fatalf("expecting status optimal, got: %s", status.Status)
 	}
 
 	fmt.Println("Test Sudoku")

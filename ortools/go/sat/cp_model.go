@@ -1,6 +1,10 @@
 package sat
 
 import (
+	"errors"
+	"math"
+	"strconv"
+
 	"or-tools/ortools/go/sat/gen"
 )
 
@@ -52,14 +56,14 @@ func (m *cpModel) Minimize(expr LinearExpr) {
 
 }
 
-func (m *cpModel) AddMaxEquality(target IntVar, vars []IntVar) {
+func (m *cpModel) AddMaxEquality(target IntVar, vars []IntVar) *gen.ConstraintProto {
 
 	varIndexes := make([]int32, 0)
 	for i := range vars {
 		varIndexes = append(varIndexes, int32(vars[i].Index()))
 	}
 
-	maxEquality := gen.ConstraintProto{
+	maxEquality := &gen.ConstraintProto{
 		Name:               "name",
 		EnforcementLiteral: nil,
 		Constraint: &gen.ConstraintProto_IntMax{
@@ -70,7 +74,9 @@ func (m *cpModel) AddMaxEquality(target IntVar, vars []IntVar) {
 		},
 	}
 
-	m.proto.Constraints = append(m.proto.Constraints, &maxEquality)
+	m.proto.Constraints = append(m.proto.Constraints, maxEquality)
+
+	return maxEquality
 
 }
 
@@ -127,6 +133,20 @@ func (m *cpModel) AddEquality(expr LinearExpr, num int) {
 
 }
 
+func (m *cpModel) AddEquality2(left LinearExpr, right LinearExpr) {
+
+	constraint := m.linearExpressionInDomain(NewDifference(left, right), NewDomain(0))
+	m.proto.Constraints = append(m.proto.Constraints, constraint)
+
+}
+
+func (m *cpModel) AddLinearConstraint2(expr LinearExpr, lb int, ub int) {
+
+	constraint := m.linearExpressionInDomain(expr, NewDomain2(int64(lb), int64(ub)))
+	m.proto.Constraints = append(m.proto.Constraints, constraint)
+
+}
+
 func (m *cpModel) linearExpressionInDomain(expr LinearExpr, domain *gen.IntegerVariableProto) *gen.ConstraintProto {
 
 	linear := &gen.LinearConstraintProto{
@@ -152,10 +172,131 @@ func (m *cpModel) linearExpressionInDomain(expr LinearExpr, domain *gen.IntegerV
 
 }
 
-func NewDomain(num int64) *gen.IntegerVariableProto {
+func (m *cpModel) AddEqualities(entities []IntVar, equalities []int) {
 
+	for i := 0; i < len(equalities)-1; i++ {
+		m.AddEquality2(&entities[equalities[i]], &entities[equalities[i+1]])
+	}
+
+}
+
+func NewMatrix64(rows, cols int) [][]int64 {
+	m := make([][]int64, rows)
+	for r := range m {
+		m[r] = make([]int64, cols)
+	}
+	return m
+}
+
+// Helper from tests class?
+func (m *cpModel) AddAllowedAssignmentsUnpacked(
+	entities []IntVar,
+	allowedAssignments []int64,
+	allowedAssignmentValues []int,
+	name string,
+) (*gen.ConstraintProto_Table, error) {
+
+	allAllowedValues := NewMatrix64(len(allowedAssignmentValues), len(allowedAssignments))
+	for i := 0; i < len(allowedAssignmentValues); i++ {
+		value := allowedAssignmentValues[i]
+		for j := 0; j < len(allowedAssignments); j++ {
+			allAllowedValues[i][j] = int64(value)
+		}
+	}
+
+	specificEntities := make([]IntVar, len(allowedAssignments))
+	for i := 0; i < len(allowedAssignments); i++ {
+		specificEntities[i] = entities[allowedAssignments[i]]
+	}
+
+	return m.AddAllowedAssignments(specificEntities, allAllowedValues, name)
+
+}
+
+func (m *cpModel) AddAllowedAssignments(variables []IntVar, tuplesList [][]int64, name string) (*gen.ConstraintProto_Table, error) {
+
+	tableVariables := []int32{}
+	for i := range variables {
+		tableVariables = append(tableVariables, int32(variables[i].Index()))
+	}
+
+	tableValues := []int64{}
+	for t := 0; t < len(tuplesList); t++ {
+		if len(tuplesList[t]) != len(variables) {
+			return nil, errors.New("tuple " + strconv.Itoa(t) + " does not have the same length as the variables")
+		}
+
+		for i := 0; i < len(tuplesList[t]); i++ {
+			tableValues = append(tableValues, tuplesList[t][i])
+		}
+	}
+
+	table := &gen.ConstraintProto_Table{
+		Table: &gen.TableConstraintProto{
+			Vars:    tableVariables,
+			Values:  tableValues,
+			Negated: false,
+		},
+	}
+
+	constraint := &gen.ConstraintProto{
+		Name:               name,
+		EnforcementLiteral: nil,
+		Constraint:         table,
+	}
+
+	m.proto.Constraints = append(m.proto.Constraints, constraint)
+
+	return table, nil
+
+}
+
+func (m *cpModel) AddGreaterOrEqual(expr LinearExpr, val int) {
+
+	constraint := m.linearExpressionInDomain(expr, NewDomain2(int64(val), math.MaxInt64))
+	m.proto.Constraints = append(m.proto.Constraints, constraint)
+
+}
+
+func NewDomain(num int64) *gen.IntegerVariableProto {
 	return &gen.IntegerVariableProto{
 		Domain: []int64{num, num},
 	}
+}
+
+func NewDomain2(lb, ub int64) *gen.IntegerVariableProto {
+	return &gen.IntegerVariableProto{
+		Domain: []int64{lb, ub},
+	}
+}
+
+func (m *cpModel) AddForbiddenAssignments(variables []IntVar, tuplesList [][]int64, name string) (*gen.ConstraintProto_Table, error) {
+	table, err := m.AddAllowedAssignments(variables, tuplesList, name)
+	if err != nil {
+		return nil, err
+	}
+
+	table.Table.Negated = true
+
+	return table, nil
+
+}
+
+func (m *cpModel) AddForbiddenAssignmentsUnpacked(forbiddenAssignmentsValues []int, forbiddenAssignments []int, entities []IntVar, name string) (*gen.ConstraintProto_Table, error) {
+
+	specificEntities := make([]IntVar, len(forbiddenAssignments))
+	for i := 0; i < len(forbiddenAssignments); i++ {
+		specificEntities[i] = entities[forbiddenAssignments[i]]
+	}
+
+	notAllowedValues := NewMatrix64(len(forbiddenAssignmentsValues), len(forbiddenAssignments))
+	for i := 0; i < len(forbiddenAssignmentsValues); i++ {
+		value := forbiddenAssignmentsValues[i]
+		for j := 0; j < len(forbiddenAssignments); j++ {
+			notAllowedValues[i][j] = int64(value)
+		}
+	}
+
+	return m.AddForbiddenAssignments(specificEntities, notAllowedValues, name)
 
 }
