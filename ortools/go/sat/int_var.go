@@ -6,7 +6,6 @@ import (
 	"or-tools/ortools/go/sat/gen"
 )
 
-/** An integer variable. */
 type IntVar struct {
 	modelProto *gen.CpModelProto
 	varIndex   int
@@ -14,11 +13,11 @@ type IntVar struct {
 	negation   *notBoolVar
 }
 
-func newIntVarLowerUpperBounds(modelProto *gen.CpModelProto, lb int64, ub int64, name string) *IntVar {
-	return newIntVarBounds(modelProto, []int64{lb, ub}, name)
+func NewIntVarLowerUpperBounds(modelProto *gen.CpModelProto, lb int64, ub int64, name string) *IntVar {
+	return NewIntVarBounds(modelProto, []int64{lb, ub}, name)
 }
 
-func newIntVarBounds(modelProto *gen.CpModelProto, bounds []int64, name string) *IntVar {
+func NewIntVarBounds(modelProto *gen.CpModelProto, bounds []int64, name string) *IntVar {
 	varProto := gen.IntegerVariableProto{
 		Name:   name,
 		Domain: bounds,

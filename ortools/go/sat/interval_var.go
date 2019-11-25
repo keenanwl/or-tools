@@ -10,12 +10,7 @@ type intervalVar struct {
 	VarProto   *gen.IntervalConstraintProto
 }
 
-type DomainTrack struct {
-}
-
 var domains = make(map[int]bool, 0)
-
-// Scheduling support.
 
 /**
  * Creates an interval variable from start, size, and end.
@@ -29,7 +24,7 @@ func (m *CpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name s
 
 	varProto := gen.IntervalConstraintProto{
 		Start: int32(start.Index()),
-		Size:  int32(m.IndexFromConstant(sizeIndex)),
+		Size:  int32(m.IndexFromConstant(sizeIndex, name)),
 		End:   int32(end.Index()),
 	}
 
@@ -56,9 +51,9 @@ func (m *CpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name s
 func (m *CpModel) NewFixedInterval(startIndex int, sizeIndex int, name string) *intervalVar {
 
 	varProto := gen.IntervalConstraintProto{
-		Start: int32(m.IndexFromConstant(startIndex)),
+		Start: int32(m.IndexFromConstant(startIndex, name)),
 		Size:  int32(sizeIndex),
-		End:   int32(m.IndexFromConstant(startIndex + sizeIndex)),
+		End:   int32(m.IndexFromConstant(startIndex+sizeIndex, name)),
 	}
 
 	intervalVar := &intervalVar{
@@ -81,12 +76,12 @@ func (m *CpModel) NewFixedInterval(startIndex int, sizeIndex int, name string) *
 
 }
 
-func (m *CpModel) IndexFromConstant(constant int) int {
+func (m *CpModel) IndexFromConstant(constant int, name string) int {
 
 	variableCount := m.VariableCount()
 
 	ivp := &gen.IntegerVariableProto{
-		Name:   "SOME NAME",
+		Name:   name,
 		Domain: []int64{int64(constant), int64(constant)},
 	}
 

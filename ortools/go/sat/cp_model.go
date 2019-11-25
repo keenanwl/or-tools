@@ -36,7 +36,7 @@ func (m *CpModel) Name() string {
 
 /** Creates an integer variable with domain [lb, ub]. */
 func (m *CpModel) NewIntVar(lb int64, ub int64, name string) *IntVar {
-	return newIntVarLowerUpperBounds(m.proto, lb, ub, name)
+	return NewIntVarLowerUpperBounds(m.proto, lb, ub, name)
 }
 
 /** Returns a non empty string explaining the issue if the model is invalid. */
