@@ -15,11 +15,11 @@ func TestCrashInPresolve(t *testing.T) {
 
 	x := model.NewIntVar(0, 5, "x")
 	y := model.NewIntVar(0, 5, "Y")
-	model.AddLinearConstraint2(InitSumOfVariables([]IntVar{*x, *y}), 0, 1)
+	model.AddLinearConstraint2(InitSumOfVariables([]IntVar{*x, *y}), 0, 1, "linear")
 
 	obj := model.NewIntVar(0, 3, "obj")
-	model.AddGreaterOrEqual(obj, 2)
-	model.AddMaxEquality(*obj, []IntVar{*x, *y})
+	model.AddGreaterOrEqual(obj, 2, "greater or equal")
+	model.AddMaxEquality(*obj, []IntVar{*x, *y}, "max eq")
 	model.Minimize(obj)
 
 	solver := cpSolver{}
@@ -58,7 +58,7 @@ func TestCpModel_TestCrashInSolveWithAllowedAssignment(t *testing.T) {
 
 	for i := 0; i < len(entitiesOne); i++ {
 		r := rand.New(rand.NewSource(numEntityTwo))
-		model.AddEquality(&entitiesOne[i], r.Int())
+		model.AddEquality(&entitiesOne[i], r.Int(), "equality")
 	}
 
 	solver := cpSolver{}
@@ -79,7 +79,7 @@ func TestCpModel_CrashEquality(t *testing.T) {
 	}
 
 	equalities := []int{18, 4, 19, 3, 12}
-	model.AddEqualities(entities[:], equalities)
+	model.AddEqualities(entities[:], equalities, "equalities")
 
 	allowedAssignments := []int64{12, 8, 15}
 	allowedAssignmentValues := []int{1, 3}
@@ -135,7 +135,7 @@ func TestCpModel_CrashEquality(t *testing.T) {
 
 	configuration := []int{5, 4, 2, 3, 3, 3, 4, 3, 3, 1, 4, 4, 3, 1, 4, 1, 4, 4, 3, 3}
 	for i := 0; i < len(configuration); i++ {
-		model.AddEquality(&entities[i], configuration[i])
+		model.AddEquality(&entities[i], configuration[i], "equality")
 	}
 
 	solver := cpSolver{}
@@ -195,11 +195,11 @@ func TestCpModel_Sudoku_sat(t *testing.T) {
 		for j := 0; j < n; j++ {
 			// Add initial points
 			if initialGrid[i][j] > 0 {
-				model.AddEquality(&grid[i][j], initialGrid[i][j])
+				model.AddEquality(&grid[i][j], initialGrid[i][j], "equality")
 			}
 			row[j] = grid[i][j]
 		}
-		model.AddAllDifferent(row[:])
+		model.AddAllDifferent(row[:], "all different")
 	}
 
 	// All different column
@@ -208,7 +208,7 @@ func TestCpModel_Sudoku_sat(t *testing.T) {
 		for i := 0; i < n; i++ {
 			column[i] = grid[i][j]
 		}
-		model.AddAllDifferent(column[:])
+		model.AddAllDifferent(column[:], "all different")
 	}
 
 	// All different cells
@@ -220,7 +220,7 @@ func TestCpModel_Sudoku_sat(t *testing.T) {
 					cell[di*cellSize+dj] = grid[i*cellSize+di][j*cellSize+dj]
 				}
 			}
-			model.AddAllDifferent(cell[:])
+			model.AddAllDifferent(cell[:], "all different")
 		}
 	}
 
@@ -276,11 +276,11 @@ func TestCpModel_Schedule_NoOverlap(t *testing.T) {
 	// No Overlap constraint. This constraint enforces that no two intervals can overlap.
 	// In this example, as we use 3 fixed intervals that span over weekends, this constraint makes
 	// sure that all tasks are executed on weekdays.
-	model.AddNoOverlap([]intervalVar{*task0, *task1, *task2, *weekend0, *weekend1, *weekend2})
+	model.AddNoOverlap([]intervalVar{*task0, *task1, *task2, *weekend0, *weekend1, *weekend2}, "no overlap")
 
 	// Makespan objective.
 	obj := model.NewIntVar(0, horizon, "makespan")
-	model.AddMaxEquality(*obj, []IntVar{*end0, *end1, *end2})
+	model.AddMaxEquality(*obj, []IntVar{*end0, *end1, *end2}, "max eq")
 	model.Minimize(obj)
 
 	solver := cpSolver{}
