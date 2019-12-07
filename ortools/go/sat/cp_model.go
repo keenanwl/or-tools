@@ -5,7 +5,7 @@ import (
 	"math"
 	"strconv"
 
-	"or-tools/ortools/go/sat/gen"
+	"ortools/go/sat/gen"
 )
 
 type CpModel struct {

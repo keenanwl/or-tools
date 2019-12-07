@@ -1,8 +1,6 @@
 package sat
 
-import (
-	"or-tools/ortools/go/sat/gen"
-)
+import "ortools/go/sat/gen"
 
 type intervalVar struct {
 	modelProto *gen.CpModelProto
@@ -12,14 +10,11 @@ type intervalVar struct {
 
 var domains = make(map[int]bool, 0)
 
-/**
- * Creates an interval variable from start, size, and end.
- *
- * An interval variable is a constraint, that is itself used in other constraints like
- * NoOverlap.
- *
- * Internally, it ensures that {@code start + size == end}.
- */
+// Creates an interval variable from start, size, and end.
+//
+// An interval variable is a constraint, that is itself used in other constraints like
+// NoOverlap.
+// Internally, it ensures that `start + size == end`.
 func (m *CpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name string) *intervalVar {
 
 	varProto := gen.IntervalConstraintProto{

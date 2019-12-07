@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"or-tools/ortools/go/sat/gen"
+	"ortools/go/sat/gen"
 )
 
 func TestCrashInPresolve(t *testing.T) {

@@ -1,4 +1,4 @@
-module or-tools
+module ortools
 
 go 1.12
 

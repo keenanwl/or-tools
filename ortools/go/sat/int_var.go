@@ -3,7 +3,7 @@ package sat
 import (
 	"fmt"
 
-	"or-tools/ortools/go/sat/gen"
+	"ortools/go/sat/gen"
 )
 
 type IntVar struct {
