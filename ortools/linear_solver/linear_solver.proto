@@ -31,6 +31,7 @@ syntax = "proto2";
 
 option java_package = "com.google.ortools.linearsolver";
 option java_multiple_files = true;
+option go_package = "ortools/go/linear_solver/gen";
 
 // import "google/protobuf/wrappers.proto";
 import "ortools/util/optional_boolean.proto";
