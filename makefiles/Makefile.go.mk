@@ -96,6 +96,8 @@ $(GEN_DIR)/ortools/util/util_go_wrap.cc: \
   -intgosize 64 \
   -v \
   $(SRC_DIR)$Sortools$Sutil$Sgo$Ssorted_interval_list.i
+	$(SED) -i -e 's/< long long >/< int64 >/g' \
+ $(GEN_DIR)/ortools/util/util_go_wrap.cc	  
 
 $(GEN_DIR)/ortools/linear_solver/linear_solver_go_wrap.cc: \
   $(SRC_DIR)/ortools/linear_solver/go/linear_solver.i \
