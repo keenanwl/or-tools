@@ -9,6 +9,14 @@ endif()
 find_package(SWIG REQUIRED)
 include(UseSWIG)
 
+if(${SWIG_VERSION} VERSION_GREATER_EQUAL 4)
+  list(APPEND CMAKE_SWIG_FLAGS "-doxygen")
+endif()
+
+if(UNIX AND NOT APPLE)
+  list(APPEND CMAKE_SWIG_FLAGS "-DSWIGWORDSIZE64")
+endif()
+
 # Generate Protobuf java sources
 set(PROTO_JAVAS)
 file(GLOB_RECURSE proto_java_files RELATIVE ${PROJECT_SOURCE_DIR}
@@ -46,9 +54,9 @@ find_package(JNI REQUIRED)
 set(FLAGS -DUSE_BOP -DUSE_GLOP -DABSL_MUST_USE_RESULT)
 if(USE_COINOR)
   list(APPEND FLAGS
-     "-DUSE_CBC"
-     "-DUSE_CLP"
-  )
+    "-DUSE_CBC"
+    "-DUSE_CLP"
+    )
 endif()
 list(APPEND CMAKE_SWIG_FLAGS ${FLAGS} "-I${PROJECT_SOURCE_DIR}")
 
@@ -56,10 +64,15 @@ foreach(SUBPROJECT constraint_solver linear_solver sat graph algorithms data)
   #add_subdirectory(ortools/${SUBPROJECT}/java)
 endforeach()
 
+file(GENERATE
+  OUTPUT pom.xml
+  INPUT ortools/java/pom.xml.in)
+
+
 # Main Target
 add_custom_target(java_package ALL
   DEPENDS pom.xml
-  COMMAND ${CMAKE_COMMAND} -E remove_directory dist
+  COMMAND ${CMAKE_COMMAND} -E remove_directory com
   COMMAND ${Java_JAVAC_EXECUTABLE} pom.xml
   )
 
