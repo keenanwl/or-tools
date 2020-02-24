@@ -3,11 +3,19 @@ if(NOT BUILD_DOTNET)
 endif()
 
 if(NOT TARGET ortools::ortools)
-  message(FATAL_ERROR "Java: missing ortools TARGET")
+  message(FATAL_ERROR ".Net: missing ortools TARGET")
 endif()
 
 find_package(SWIG)
 include(UseSWIG)
+
+if(${SWIG_VERSION} VERSION_GREATER_EQUAL 4)
+  list(APPEND CMAKE_SWIG_FLAGS "-doxygen")
+endif()
+
+if(UNIX AND NOT APPLE)
+  list(APPEND CMAKE_SWIG_FLAGS "-DSWIGWORDSIZE64")
+endif()
 
 # Generate Protobuf .Net sources
 set(PROTO_DOTNETS)
@@ -46,15 +54,19 @@ find_program (DOTNET_CLI NAMES dotnet)
 set(FLAGS -DUSE_BOP -DUSE_GLOP -DABSL_MUST_USE_RESULT)
 if(USE_COINOR)
   list(APPEND FLAGS
-     "-DUSE_CBC"
-     "-DUSE_CLP"
-  )
+    "-DUSE_CBC"
+    "-DUSE_CLP"
+    )
 endif()
 list(APPEND CMAKE_SWIG_FLAGS ${FLAGS} "-I${PROJECT_SOURCE_DIR}")
 
 foreach(SUBPROJECT constraint_solver linear_solver sat graph algorithms data)
   #add_subdirectory(ortools/${SUBPROJECT}/csharp)
 endforeach()
+
+file(GENERATE
+  OUTPUT ${PROJECT_NAME}.csproj
+  INPUT ortools/dotnet/Google.OrTools/Google.OrTools.csproj.in)
 
 # Main Target
 add_custom_target(dotnet_package ALL
