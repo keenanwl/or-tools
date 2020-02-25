@@ -36,7 +36,7 @@ foreach(PROTO_FILE ${proto_java_files})
     OUTPUT ${PROTO_JAVA}
     COMMAND protobuf::protoc
     "--proto_path=${PROJECT_SOURCE_DIR}"
-    "--java_out=${PROJECT_BINARY_DIR}/java"
+    "--java_out=${PROJECT_BINARY_DIR}/java/com/google/"
     ${PROTO_FILE}
     DEPENDS ${PROTO_FILE} protobuf::protoc
     COMMENT "Running C++ protocol buffer compiler on ${PROTO_FILE}"
@@ -65,15 +65,21 @@ foreach(SUBPROJECT constraint_solver linear_solver sat graph algorithms data)
 endforeach()
 
 file(GENERATE
-  OUTPUT pom.xml
+  OUTPUT java/pom.xml
   INPUT ortools/java/pom.xml.in)
 
 
 # Main Target
 add_custom_target(java_package ALL
-  DEPENDS pom.xml
+  DEPENDS
+    ortools::ortools
+    Java${PROJECT_NAME}_proto
+    java/pom.xml
   COMMAND ${CMAKE_COMMAND} -E remove_directory com
   COMMAND ${Java_JAVAC_EXECUTABLE} pom.xml
+  BYPRODUCTS
+    java
+  WORKING_DIRECTORY java
   )
 
 # Test
