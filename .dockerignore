@@ -43,6 +43,7 @@ lib
 bin
 packages
 build/
+examples/data
 
 # Editor directories and files
 *.user
