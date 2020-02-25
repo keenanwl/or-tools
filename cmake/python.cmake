@@ -52,7 +52,7 @@ foreach(PROTO_FILE ${proto_py_files})
   #message(STATUS "protoc proto(py): ${PROTO_FILE}")
   get_filename_component(PROTO_DIR ${PROTO_FILE} DIRECTORY)
   get_filename_component(PROTO_NAME ${PROTO_FILE} NAME_WE)
-  set(PROTO_PY ${PROJECT_BINARY_DIR}/${PROTO_DIR}/${PROTO_NAME}_pb2.py)
+  set(PROTO_PY ${PROJECT_BINARY_DIR}/python/${PROTO_DIR}/${PROTO_NAME}_pb2.py)
   #message(STATUS "protoc py: ${PROTO_PY}")
   add_custom_command(
     OUTPUT ${PROTO_PY}
@@ -78,7 +78,7 @@ if(USE_COINOR)
 endif()
 list(APPEND CMAKE_SWIG_FLAGS ${FLAGS} "-I${PROJECT_SOURCE_DIR}")
 
-foreach(SUBPROJECT constraint_solver linear_solver sat graph algorithms data)
+foreach(SUBPROJECT constraint_solver linear_solver sat graph algorithms data util)
   add_subdirectory(ortools/${SUBPROJECT}/python)
 endforeach()
 
@@ -147,6 +147,7 @@ add_custom_command(OUTPUT python/setup.py
   COMMAND ${CMAKE_COMMAND} -E echo "  'ortools.graph':['$<TARGET_FILE_NAME:pywrapgraph>']," >> setup.py
   COMMAND ${CMAKE_COMMAND} -E echo "  'ortools.algorithms':['$<TARGET_FILE_NAME:pywrapknapsack_solver>']," >> setup.py
   COMMAND ${CMAKE_COMMAND} -E echo "  'ortools.data':['$<TARGET_FILE_NAME:pywraprcpsp>', '*.pyi']," >> setup.py
+  COMMAND ${CMAKE_COMMAND} -E echo "  'ortools.util':['$<TARGET_FILE_NAME:sorted_interval_list>', '*.pyi']," >> setup.py
   COMMAND ${CMAKE_COMMAND} -E echo "  }," >> setup.py
   COMMAND ${CMAKE_COMMAND} -E echo "  include_package_data=True," >> setup.py
   COMMAND ${CMAKE_COMMAND} -E echo "  install_requires=[" >> setup.py
@@ -202,7 +203,10 @@ search_python_module(wheel)
 
 # Main Target
 add_custom_target(python_package ALL
-  DEPENDS python/setup.py Py${PROJECT_NAME}_proto
+  DEPENDS
+    ortools::ortools
+    Py${PROJECT_NAME}_proto
+    python/setup.py
   COMMAND ${CMAKE_COMMAND} -E remove_directory dist
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_NAME}/.libs
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:pywrapknapsack_solver> ${PROJECT_NAME}/algorithms
@@ -216,10 +220,10 @@ add_custom_target(python_package ALL
   #COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg bdist_wheel
   COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
   BYPRODUCTS
-  python/${PROJECT_NAME}
-  python/build
-  python/dist
-  python/${PROJECT_NAME}.egg-info
+    python/${PROJECT_NAME}
+    python/build
+    python/dist
+    python/${PROJECT_NAME}.egg-info
   WORKING_DIRECTORY python
   )
 
