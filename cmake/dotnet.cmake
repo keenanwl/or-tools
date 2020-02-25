@@ -30,13 +30,14 @@ foreach(PROTO_FILE ${proto_dotnet_files})
   #message(STATUS "protoc proto(dotnet): ${PROTO_FILE}")
   get_filename_component(PROTO_DIR ${PROTO_FILE} DIRECTORY)
   get_filename_component(PROTO_NAME ${PROTO_FILE} NAME_WE)
-  set(PROTO_DOTNET ${PROJECT_BINARY_DIR}/${PROTO_DIR}/${PROTO_NAME}.pb.cs)
+  set(PROTO_DOTNET ${PROJECT_BINARY_DIR}/dotnet/${PROTO_DIR}/${PROTO_NAME}.pb.cs)
   #message(STATUS "protoc dotnet: ${PROTO_DOTNET}")
   add_custom_command(
     OUTPUT ${PROTO_DOTNET}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}/dotnet/${PROTO_DIR}
     COMMAND protobuf::protoc
     "--proto_path=${PROJECT_SOURCE_DIR}"
-    "--csharp_out=${PROJECT_BINARY_DIR}"
+    "--csharp_out=${PROJECT_BINARY_DIR}/dotnet/${PROTO_DIR}"
     "--csharp_opt=file_extension=.pb.cs"
     ${PROTO_FILE}
     DEPENDS ${PROTO_FILE} protobuf::protoc
@@ -60,20 +61,56 @@ if(USE_COINOR)
 endif()
 list(APPEND CMAKE_SWIG_FLAGS ${FLAGS} "-I${PROJECT_SOURCE_DIR}")
 
-foreach(SUBPROJECT constraint_solver linear_solver sat graph algorithms data)
-  #add_subdirectory(ortools/${SUBPROJECT}/csharp)
+foreach(SUBPROJECT constraint_solver linear_solver sat graph algorithms util)
+  add_subdirectory(ortools/${SUBPROJECT}/csharp)
 endforeach()
 
-file(GENERATE
-  OUTPUT ${PROJECT_NAME}.csproj
-  INPUT ortools/dotnet/Google.OrTools/Google.OrTools.csproj.in)
+if(APPLE)
+  set(RUNTIME_IDENTIFIER osx-x64)
+elseif(UNIX)
+  set(RUNTIME_IDENTIFIER linux-x64)
+elseif(WIN32)
+  set(RUNTIME_IDENTIFIER win-x64)
+else()
+  message(FATAL_ERROR "Unsupported system !")
+endif()
+set(OR_TOOLS_DOTNET_NATIVE Google.OrTools.runtime.${RUNTIME_IDENTIFIER})
+
+add_custom_target(dotnet_native
+  DEPENDS
+    ortools::ortools
+    Dotnet${PROJECT_NAME}_proto
+    ${PROJECT_BINARY_DIR}/dotnet/${OR_TOOLS_DOTNET_NATIVE}/${OR_TOOLS_DOTNET_NATIVE}.csproj
+  COMMAND ${CMAKE_COMMAND} -E make_directory packages
+  COMMAND ${DOTNET_CLI} build -c Release /p:Platform=x64 ${OR_TOOLS_DOTNET_NATIVE}/${OR_TOOLS_DOTNET_NATIVE}.csproj
+  COMMAND ${DOTNET_CLI} pack -c Release ${OR_TOOLS_DOTNET_NATIVE}/${OR_TOOLS_DOTNET_NATIVE}.csproj
+  WORKING_DIRECTORY dotnet
+  )
+
+configure_file(
+  ortools/dotnet/${OR_TOOLS_DOTNET_NATIVE}/${OR_TOOLS_DOTNET_NATIVE}.csproj.in
+  dotnet/${OR_TOOLS_DOTNET_NATIVE}/${OR_TOOLS_DOTNET_NATIVE}.csproj
+  @ONLY)
+
 
 # Main Target
+set(OR_TOOLS_DOTNET Google.OrTools)
+
 add_custom_target(dotnet_package ALL
-  DEPENDS ${PROJECT_NAME}.csproj
-  COMMAND ${CMAKE_COMMAND} -E remove_directory packages
-  COMMAND ${DOTNET_CLI} package ${PROJECT_NAME}.csproj
+  DEPENDS
+    dotnet_native
+    ${PROJECT_BINARY_DIR}/dotnet/${OR_TOOLS_DOTNET}/${OR_TOOLS_DOTNET}.csproj
+  COMMAND ${DOTNET_CLI} build -c Release /p:Platform=x64 ${OR_TOOLS_DOTNET}/${OR_TOOLS_DOTNET}.csproj
+  COMMAND ${DOTNET_CLI} pack -c Release ${OR_TOOLS_DOTNET}/${OR_TOOLS_DOTNET}.csproj
+  BYPRODUCTS
+    dotnet/packages
+  WORKING_DIRECTORY dotnet
   )
+
+configure_file(
+  ortools/dotnet/${OR_TOOLS_DOTNET}/${OR_TOOLS_DOTNET}.csproj.in
+  dotnet/${OR_TOOLS_DOTNET}/${OR_TOOLS_DOTNET}.csproj
+  @ONLY)
 
 # Test
 if(BUILD_TESTING)
