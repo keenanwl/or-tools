@@ -9,9 +9,9 @@ endif()
 find_package(SWIG)
 include(UseSWIG)
 
-if(${SWIG_VERSION} VERSION_GREATER_EQUAL 4)
-  list(APPEND CMAKE_SWIG_FLAGS "-doxygen")
-endif()
+#if(${SWIG_VERSION} VERSION_GREATER_EQUAL 4)
+#  list(APPEND CMAKE_SWIG_FLAGS "-doxygen")
+#endif()
 
 if(UNIX AND NOT APPLE)
   list(APPEND CMAKE_SWIG_FLAGS "-DSWIGWORDSIZE64")
