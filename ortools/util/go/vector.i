@@ -40,16 +40,16 @@
 // This part is for const std::vector<>&.
 %typemap(gotype) const std::vector<CType>& "[]GoType"
 //%typemap(goin) const std::vector<CType>& "$goinput"
-%typemap(imtype) const std::vector<CType>& "[]GoType"
-%typemap(ctype) const std::vector<CType>& %{
-  CType*  
-%}
+//%typemap(imtype) const std::vector<CType>& "[]GoType"
+//%typemap(ctype) const std::vector<CType>& %{
+//  CType*  
+//%}
 %typemap(in) const std::vector<CType>& %{
   // Hello c 1
   $1 = new std::vector<CType>;
   $1->reserve($input.len);
 
-  CType* val = reinterpret_cast<CType*&>(_swig_go_0.array);
+  CType* val = reinterpret_cast<CType*&>($input.array);
   for (int i = 0; i < $input.len; ++i) {
     $1->emplace_back(val[i]);
   }
@@ -66,20 +66,18 @@
   std::copy($1.begin(), $1.end(), arr);
   $result = arr;
 %}
-%typemap(argout) const std::vector<CType>& %{
+//%typemap(argout) const std::vector<CType>& %{
   //l1
   //CType arr[$input.size()];
   //$result = reinterpret_cast<$1;
-%}
+//%}
 //%typemap(goin) const std::vector<CType>& %{
   //l2
   //$result = new std::vector< CType >((const std::vector< CType> &)$1);
 //%}
 // Now, we do it for std::vector<>.
 %typemap(gotype) std::vector<CType> %{[]GoType %}
-//%typemap(goin) std::vector<Ctype> %{ $goinput %}
-//%typemap(imtype) std::vector<CType> %{ []GoType %}
-%typemap(ctype) std::vector<CType>  %{ CType* %}
+//%typemap(ctype) std::vector<CType> %{ CType* %}
 %typemap(in) std::vector<CType> %{
     // Hello c 2
     $1.clear();
@@ -90,21 +88,7 @@
       $1.emplace_back(*(val+i));
     }
 %}
-%typemap(goin) const std::vector<CType> %{
-  //l55555555
-  //var BREAKER
-%}
-//%typemap(goout) const std::vector<CType> %{
-  //l55555555pp
-  //var BREAKER
-//%}
-%typemap(argout) std::vector<CType> %{
-  // HERE1
-  //$result = new std::vector< CType >((const std::vector< CType> &)$1);
-%}
-//%typemap(goin) std::vector<CType> {
-  // LOOKHHH
-//}
+
 %enddef  // VECTOR_AS_JAVA_ARRAY
 
 
@@ -126,9 +110,9 @@
   // IMTYPE
   //[]GoType
 //%}
-%typemap(ctype)  const std::vector<std::vector<CType> >&  %{
-  CType*
-%}
+//%typemap(ctype)  const std::vector<std::vector<CType> >&  %{
+//  CType*
+//%}
 %typemap(in) const std::vector<std::vector<CType> >&  (std::vector<std::vector<CType> > result) %{
     result.clear();
     result.resize(sizeof($input));
@@ -150,19 +134,12 @@
 //LALALALALALA2
 return $1
 %}
-%typemap(goin)  const std::vector<std::vector<CType> >& %{
-  //LALALALALALA3
-%}
-%typemap(goout)  const std::vector<std::vector<CType> >& %{
-  //LALALALALALA4
-%}
 // Now, we do it for std::vector<std::vector<>>*
 %typemap(gotype) std::vector<std::vector<CType> >* "[][]GoType"
-//%typemap(goin) std::vector<std::vector<CType> >* "$goinput"
-%typemap(imtype) std::vector<std::vector<CType> >* "[][]GoType"
-%typemap(ctype, out="void*") std::vector<std::vector<CType> >*  %{
-  CType*
-%}
+//%typemap(imtype) std::vector<std::vector<CType> >* "[][]GoType"
+//%typemap(ctype) std::vector<std::vector<CType> >*  %{
+//  CType*
+//%}
 %typemap(in) const std::vector<std::vector<CType> >*  (std::vector<std::vector<CType> > result) %{
     result.clear();
     result.resize(sizeof($input));
@@ -181,14 +158,72 @@ return $1
 
     $1 = reinterpret_cast<std::vector<std::vector<CType> >*>(&result);
 %}
-%typemap(goin) std::vector<std::vector<CType> >* {
-  // LOOKHHH
-}
-%typemap(goout) std::vector<std::vector<CType> >* {
-  // LOOKHHH2
-}
 %enddef  // MATRIX_AS_JAVA_ARRAY
 
-//%define REINTERPRET_CAST(CType, ptr)
-//reinterpret_cast<CType*>(ptr)
-//%enddef
+// Typemaps to represents arguments of types "const std::vector<CType*>&" or
+// "std::vector<CType*>" as JavaType[] (ObjectArray).
+// note: CType is NOT a primitive type.
+// note: CastOp defines how to cast the output of CallStaticLongMethod to CType*;
+// its first argument is CType, its second is the output of CallStaticLongMethod.
+// ref: https://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/functions.html#GetObjectArrayElement
+%define CONVERT_VECTOR_WITH_CAST(CType, GoType, CastOp, JavaPackage)
+// This part is for const std::vector<CType*>&.
+%typemap(gotype) const std::vector<CType*>& "[]GoType"
+//%typemap(goin) const std::vector<CType*>& "$goinput"
+//%typemap(imtype) const std::vector<CType*>& "[]GoType"
+//%typemap(ctype) const std::vector<CType*>& "jobjectArray"
+%typemap(in) const std::vector<CType*>& (std::vector<CType*> result) {
+
+  for (int i = 0; i < $input.len; i++) {
+    CType* elem = &reinterpret_cast<CType(*)>($input.array)[i];
+    result.push_back(CastOp(CType, elem));
+  }
+  $1 = &result;
+}
+%typemap(out) const std::vector<CType*>& {
+
+  // AYYEYEYEE
+  //CType outArray[vectorSize];
+  //for (int i = 0; i < vectorSize; ++i) {
+    //outArray.push_back($1[i]);
+  //}
+
+  //_goslice_ output;
+  int vectorSize = $1->size();
+  $result.array = &$1[0];
+  $result.len = vectorSize;
+  $result.cap = vectorSize;
+
+}
+// Now, we do it for std::vector<CType*>.
+%typemap(gotype) std::vector<CType*> "[]GoType"
+//%typemap(imtype) std::vector<CType*> "[]GoType"
+//%typemap(ctype) std::vector<CType*> "jobjectArray"
+%typemap(in) std::vector<CType*> (std::vector<CType*> result) {
+  jclass object_class = jenv->FindClass("JavaPackage/JavaType");
+  if (nullptr == object_class)
+    return $null;
+  jmethodID method_id = jenv->GetStaticMethodID(
+    object_class, "getCPtr", "(LJavaPackage/JavaType;)J");
+  assert(method_id != nullptr);
+  for (int i = 0; i < jenv->GetArrayLength($input); i++) {
+    jobject elem = jenv->GetObjectArrayElement($input, i);
+    jlong ptr_value = jenv->CallStaticLongMethod(object_class, method_id, elem);
+    $1.push_back(CastOp(CType, ptr_value));
+  }
+}
+%enddef  // CONVERT_VECTOR_WITH_CAST
+
+%define REINTERPRET_CAST(CType, ptr)
+  reinterpret_cast<CType*>(ptr)
+%enddef
+
+VECTOR_AS_GO_ARRAY(int, int, int64);
+VECTOR_AS_GO_ARRAY(int64, int64, int64);
+VECTOR_AS_GO_ARRAY(double, float64, float64);
+
+MATRIX_AS_GO_ARRAY(int, int, int);
+MATRIX_AS_GO_ARRAY(int64, int64, int64);
+MATRIX_AS_GO_ARRAY(double, float64, float64);
+
+

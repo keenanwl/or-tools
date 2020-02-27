@@ -28,15 +28,6 @@
 #include "ortools/util/sorted_interval_list.h"
 %}
 
-
-VECTOR_AS_GO_ARRAY(int, int, int64);
-VECTOR_AS_GO_ARRAY(int64, int64, int64);
-VECTOR_AS_GO_ARRAY(double, float64, float64);
-
-MATRIX_AS_GO_ARRAY(int, int, int);
-MATRIX_AS_GO_ARRAY(int64, int64, int64);
-MATRIX_AS_GO_ARRAY(double, float64, float64);
-
 %module operations_research;
 
 %ignoreall

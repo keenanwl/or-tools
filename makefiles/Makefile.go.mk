@@ -45,6 +45,9 @@ ortools/go/linear_solver/gen:
 ortools/go/util/gen:
 	-$(MKDIR_P) ortools$Sgo$Sutil$Sgen
 
+ortools/go/sorted_interval/gen:
+	-$(MKDIR_P) ortools$Sgo$Ssorted_interval$Sgen
+
 ortools/go/sat/gen/cp_model.pb.go: \
  $(SRC_DIR)/ortools/sat/cp_model.proto \
  | ortools/go/sat/gen
@@ -87,24 +90,25 @@ $(GEN_DIR)/ortools/util/util_go_wrap.cc: \
   $(SRC_DIR)/ortools/util/go/sorted_interval_list.i \
   $(SRC_DIR)/ortools/base/base.i \
   $(UTIL_DEPS) \
-  | $(GEN_DIR)/ortools/util
+  | ortools/go/sorted_interval/gen
 	 $(SWIG_BINARY) $(SWIG_INC) -I$(INC_DIR) -c++ -go -cgo \
   -o $(GEN_PATH)$Sortools$Sutil$Sutil_go_wrap.cc \
-  -package ortools$Sgo$Slinear_solver$Sgen \
-  -module linear_solver_wrapper \
-  -outdir ortools$Sgo$Slinear_solver$Sgen \
+  -package ortools$Sgo$Ssorted_interval$Sgen \
+  -module sorted_interval \
+  -outdir ortools$Sgo$Ssorted_interval$Sgen \
   -intgosize 64 \
   -v \
   $(SRC_DIR)$Sortools$Sutil$Sgo$Ssorted_interval_list.i
 	$(SED) -i -e 's/< long long >/< int64 >/g' \
- $(GEN_DIR)/ortools/util/util_go_wrap.cc	  
+  $(GEN_DIR)/ortools/util/util_go_wrap.cc
 
 $(GEN_DIR)/ortools/linear_solver/linear_solver_go_wrap.cc: \
   $(SRC_DIR)/ortools/linear_solver/go/linear_solver.i \
   $(SRC_DIR)/ortools/base/base.i \
+  $(SRC_DIR)/ortools/util/go/vector.i \
   $(LP_DEPS) \
   | $(GEN_DIR)/ortools/linear_solver
-	$(SWIG_BINARY) $(SWIG_INC) -I$(INC_DIR) -c++ -go -cgo \
+	$(SWIG_BINARY) $(SWIG_INC) -c++ -go -cgo \
   -o $(GEN_PATH)$Sortools$Slinear_solver$Slinear_solver_go_wrap.cc \
   -package ortools$Sgo$Slinear_solver$Sgen \
   -module linear_solver_wrapper \
@@ -112,6 +116,14 @@ $(GEN_DIR)/ortools/linear_solver/linear_solver_go_wrap.cc: \
   -intgosize 64 \
   -v \
   $(SRC_DIR)$Sortools$Slinear_solver$Sgo$Slinear_solver.i
+
+$(OBJ_DIR)/swig/linear_solver_go_wrap.$O: \
+   $(GEN_DIR)/ortools/linear_solver/linear_solver_go_wrap.cc \
+   $(LP_DEPS) \
+     | $(OBJ_DIR)/swig
+	$(CCC) $(CFLAGS) \
+     -c $(GEN_PATH)$Sortools$Slinear_solver$Slinear_solver_go_wrap.cc \
+   $(OBJ_OUT)$(OBJ_DIR)$Sswig$Slinear_solver_go_wrap.$O
 
 $(OBJ_DIR)/swig/util_go_wrap.$O: \
  $(GEN_DIR)/ortools/util/util_go_wrap.cc \
@@ -131,9 +143,11 @@ $(OBJ_DIR)/swig/sat_go_wrap.$O: \
 
 $(GO_OR_TOOLS_NATIVE_LIBS): \
 	$(OR_TOOLS_LIBS) \
+	$(OBJ_DIR)/swig/linear_solver_go_wrap.$O \
 	$(OBJ_DIR)/swig/sat_go_wrap.$O \
 	$(OBJ_DIR)/swig/util_go_wrap.$O
 	$(DYNAMIC_LD) $(LD_OUT)$(LIB_DIR)$S$(LIB_PREFIX)goortools.$(SWIG_GO_LIB_EXT) \
+	$(OBJ_DIR)$Sswig$Slinear_solver_go_wrap.$O \
 	$(OBJ_DIR)$Sswig$Ssat_go_wrap.$O \
 	$(OBJ_DIR)$Sswig$Sutil_go_wrap.$O \
 	$(OR_TOOLS_LNK) \
@@ -143,8 +157,8 @@ go_pimpl: \
 	ortools/go/sat/gen/cp_model.pb.go \
 	ortools/go/sat/gen/sat_parameters.pb.go \
 	ortools/go/linear_solver/gen/mp_model.pb.go \
-	$(GEN_DIR)/ortools/linear_solver/linear_solver_go_wrap.cc \
 	$(GEN_DIR)/go/util/gen/optional_boolean.pb.go \
+	$(GEN_DIR)/ortools/linear_solver/linear_solver_go_wrap.cc \
 	$(GEN_DIR)/ortools/sat/sat_go_wrap.cc \
 	$(GEN_DIR)/ortools/util/util_go_wrap.cc \
 	$(GO_OR_TOOLS_NATIVE_LIBS)
@@ -171,6 +185,7 @@ clean_go:
 	-$(DELREC) ortools$Sgo$Ssat$Sgen
 	-$(DELREC) ortools$Sgo$Slinear_solver$Sgen
 	-$(DELREC) ortools$Sgo$Sutil$Sgen
+	-$(DEL) $(GEN_PATH)$Sortools$Slinear_solver$S*go_wrap*
 	-$(DEL) $(GEN_PATH)$Sortools$Ssat$S*go_wrap*
 	-$(DEL) $(GEN_PATH)$Sortools$Sutil$S*go_wrap*
 	-$(DEL) $(OBJ_DIR)$Sswig$S*go_wrap*
