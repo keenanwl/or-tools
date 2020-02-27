@@ -1,7 +1,6 @@
 package sat
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -231,7 +230,7 @@ func TestCpModel_Sudoku_sat(t *testing.T) {
 		t.Fatalf("expecting status optimal, got: %s", status.Status)
 	}
 
-	fmt.Println("Test Sudoku")
+	t.Log("Test Sudoku")
 	for i := 0; i < n; i++ {
 		row := [n]int64{}
 		for j := 0; j < n; j++ {
@@ -240,7 +239,7 @@ func TestCpModel_Sudoku_sat(t *testing.T) {
 		if row != expectedSolution[i] {
 			t.Fatalf("expected row %v to have values %v, got %v instead", i, expectedSolution[i], row)
 		}
-		fmt.Println(row)
+		t.Log(row)
 	}
 
 }
@@ -310,9 +309,9 @@ func TestCpModel_Schedule_NoOverlap(t *testing.T) {
 		t.Fatalf("expecting task 2 to start at 2, got %v", status.Solution[start2.Index()])
 	}
 
-	fmt.Printf("Optimal Schedule Length: %v\n", status.ObjectiveValue)
-	fmt.Printf("Task 0 starts at %v\n", status.Solution[start0.Index()])
-	fmt.Printf("Task 1 starts at %v\n", status.Solution[start1.Index()])
-	fmt.Printf("Task 2 starts at %v\n", status.Solution[start2.Index()])
+	t.Log("Optimal Schedule Length: %v\n", status.ObjectiveValue)
+	t.Log("Task 0 starts at %v\n", status.Solution[start0.Index()])
+	t.Log("Task 1 starts at %v\n", status.Solution[start1.Index()])
+	t.Log("Task 2 starts at %v\n", status.Solution[start2.Index()])
 
 }
