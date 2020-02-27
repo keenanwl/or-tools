@@ -43,10 +43,10 @@ class MPModelRequest;
 class MPSolutionResponse;
 }  // namespace operations_research
 
-//%{
-//#include "ortools/linear_solver/linear_solver.h"
-//#include "ortools/linear_solver/model_exporter.h"
-//%}
+%{
+#include "ortools/linear_solver/linear_solver.h"
+#include "ortools/linear_solver/model_exporter.h"
+%}
 
 //%typemap(javaimports) SWIGTYPE %{
 //import java.lang.reflect.*;
