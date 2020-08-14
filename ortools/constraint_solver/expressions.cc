@@ -1384,10 +1384,10 @@ class DomainIntVar : public IntVar {
       return s->MakeIsGreaterOrEqualCstVar(this, constant);
     }
     if (!Contains(constant)) {
-      return s->MakeIntConst(0LL);
+      return s->MakeIntConst(int64{0});
     }
     if (Bound() && min_.Value() == constant) {
-      return s->MakeIntConst(1LL);
+      return s->MakeIntConst(int64{1});
     }
     IntExpr* const cache = s->Cache()->FindExprConstantExpression(
         this, constant, ModelCache::EXPR_CONSTANT_IS_EQUAL);
@@ -1437,10 +1437,10 @@ class DomainIntVar : public IntVar {
       return s->MakeIsLessOrEqualCstVar(this, constant - 1);
     }
     if (!Contains(constant)) {
-      return s->MakeIntConst(1LL);
+      return s->MakeIntConst(int64{1});
     }
     if (Bound() && min_.Value() == constant) {
-      return s->MakeIntConst(0LL);
+      return s->MakeIntConst(int64{0});
     }
     IntExpr* const cache = s->Cache()->FindExprConstantExpression(
         this, constant, ModelCache::EXPR_CONSTANT_IS_NOT_EQUAL);
@@ -1457,10 +1457,10 @@ class DomainIntVar : public IntVar {
   IntVar* IsGreaterOrEqual(int64 constant) override {
     Solver* const s = solver();
     if (max_.Value() < constant) {
-      return s->MakeIntConst(0LL);
+      return s->MakeIntConst(int64{0});
     }
     if (min_.Value() >= constant) {
-      return s->MakeIntConst(1LL);
+      return s->MakeIntConst(int64{1});
     }
     IntExpr* const cache = s->Cache()->FindExprConstantExpression(
         this, constant, ModelCache::EXPR_CONSTANT_IS_GREATER_OR_EQUAL);
@@ -5782,8 +5782,8 @@ class SimpleConvexPiecewiseExpr : public BaseIntExpr {
         early_date_(ec == 0 ? kint64min : ed),
         late_date_(lc == 0 ? kint64max : ld),
         late_cost_(lc) {
-    DCHECK_GE(ec, 0LL);
-    DCHECK_GE(lc, 0LL);
+    DCHECK_GE(ec, int64{0});
+    DCHECK_GE(lc, int64{0});
     DCHECK_GE(ld, ed);
 
     // If the penalty is 0, we can push the "confort zone or zone
@@ -5894,8 +5894,8 @@ class SemiContinuousExpr : public BaseIntExpr {
   SemiContinuousExpr(Solver* const s, IntExpr* const e, int64 fixed_charge,
                      int64 step)
       : BaseIntExpr(s), expr_(e), fixed_charge_(fixed_charge), step_(step) {
-    DCHECK_GE(fixed_charge, 0LL);
-    DCHECK_GT(step, 0LL);
+    DCHECK_GE(fixed_charge, int64{0});
+    DCHECK_GT(step, int64{0});
   }
 
   ~SemiContinuousExpr() override {}
@@ -5969,7 +5969,7 @@ class SemiContinuousStepOneExpr : public BaseIntExpr {
   SemiContinuousStepOneExpr(Solver* const s, IntExpr* const e,
                             int64 fixed_charge)
       : BaseIntExpr(s), expr_(e), fixed_charge_(fixed_charge) {
-    DCHECK_GE(fixed_charge, 0LL);
+    DCHECK_GE(fixed_charge, int64{0});
   }
 
   ~SemiContinuousStepOneExpr() override {}
@@ -6037,7 +6037,7 @@ class SemiContinuousStepZeroExpr : public BaseIntExpr {
   SemiContinuousStepZeroExpr(Solver* const s, IntExpr* const e,
                              int64 fixed_charge)
       : BaseIntExpr(s), expr_(e), fixed_charge_(fixed_charge) {
-    DCHECK_GT(fixed_charge, 0LL);
+    DCHECK_GT(fixed_charge, int64{0});
   }
 
   ~SemiContinuousStepZeroExpr() override {}
@@ -7135,7 +7135,7 @@ IntExpr* Solver::MakeSemiContinuousExpr(IntExpr* const expr, int64 fixed_charge,
                                         int64 step) {
   if (step == 0) {
     if (fixed_charge == 0) {
-      return MakeIntConst(0LL);
+      return MakeIntConst(int64{0});
     } else {
       return RegisterIntExpr(
           RevAlloc(new SemiContinuousStepZeroExpr(this, expr, fixed_charge)));

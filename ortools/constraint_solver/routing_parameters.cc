@@ -85,9 +85,12 @@ RoutingSearchParameters DefaultRoutingSearchParameters() {
       "  use_local_cheapest_insertion_path_lns: BOOL_TRUE"
       "  use_global_cheapest_insertion_expensive_chain_lns: BOOL_FALSE"
       "  use_local_cheapest_insertion_expensive_chain_lns: BOOL_FALSE"
+      "  use_global_cheapest_insertion_close_nodes_lns: BOOL_FALSE"
+      "  use_local_cheapest_insertion_close_nodes_lns: BOOL_FALSE"
       "}"
       "relocate_expensive_chain_num_arcs_to_consider: 4 "
       "heuristic_expensive_chain_lns_num_arcs_to_consider: 4 "
+      "heuristic_close_nodes_lns_num_nodes: 5 "
       "local_search_metaheuristic: AUTOMATIC "
       "guided_local_search_lambda_coefficient: 0.1 "
       "use_depth_first_search: false "
@@ -120,7 +123,7 @@ namespace {
 bool IsValidNonNegativeDuration(const google::protobuf::Duration& d) {
   const auto status_or_duration = util_time::DecodeGoogleApiProto(d);
   return status_or_duration.ok() &&
-         status_or_duration.ValueOrDie() >= absl::ZeroDuration();
+         status_or_duration.value() >= absl::ZeroDuration();
 }
 }  // namespace
 
@@ -217,6 +220,14 @@ std::string FindErrorInRoutingSearchParameters(
     }
   }
   {
+    const int32 num_nodes =
+        search_parameters.heuristic_close_nodes_lns_num_nodes();
+    if (num_nodes < 0 || num_nodes > 1e4) {
+      return StrCat("Invalid heuristic_close_nodes_lns_num_nodes: ", num_nodes,
+                    ". Must be between 0 and 10000 (included).");
+    }
+  }
+  {
     const double gls_coefficient =
         search_parameters.guided_local_search_lambda_coefficient();
     if (std::isnan(gls_coefficient) || gls_coefficient < 0 ||
@@ -267,6 +278,22 @@ std::string FindErrorInRoutingSearchParameters(
   const double offset = search_parameters.log_cost_offset();
   if (std::isnan(offset) || std::isinf(offset)) {
     return StrCat("Invalid value for log_cost_offset: ", offset);
+  }
+  const RoutingSearchParameters::SchedulingSolver continuous_scheduling_solver =
+      search_parameters.continuous_scheduling_solver();
+  if (continuous_scheduling_solver == RoutingSearchParameters::UNSET ||
+      continuous_scheduling_solver == RoutingSearchParameters::CP_SAT) {
+    return StrCat("Invalid value for continuous_scheduling_solver: ",
+                  RoutingSearchParameters::SchedulingSolver_Name(
+                      continuous_scheduling_solver));
+  }
+  const RoutingSearchParameters::SchedulingSolver
+      mixed_integer_scheduling_solver =
+          search_parameters.mixed_integer_scheduling_solver();
+  if (mixed_integer_scheduling_solver == RoutingSearchParameters::UNSET) {
+    return StrCat("Invalid value for mixed_integer_scheduling_solver: ",
+                  RoutingSearchParameters::SchedulingSolver_Name(
+                      mixed_integer_scheduling_solver));
   }
 
   return "";  // = Valid (No error).

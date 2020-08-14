@@ -6,9 +6,9 @@ project(ortools_examples)
 
 if (APPLE)
 	set(CMAKE_INSTALL_RPATH
-		"@loader_path/../..;@loader_path/../lib;@loader_path")
+		"@loader_path/../..;@loader_path/../${CMAKE_INSTALL_LIBDIR};@loader_path")
 else()
-	set(CMAKE_INSTALL_RPATH "$ORIGIN/../../:$ORIGIN/../lib:$ORIGIN/")
+	set(CMAKE_INSTALL_RPATH "$ORIGIN/../../:$ORIGIN/../${CMAKE_INSTALL_LIBDIR}:$ORIGIN/")
 endif()
 
 get_filename_component(PARENT_SOURCE_DIR ${PROJECT_SOURCE_DIR} DIRECTORY)
@@ -16,6 +16,7 @@ get_filename_component(PARENT_SOURCE_DIR ${PROJECT_SOURCE_DIR} DIRECTORY)
 include(GNUInstallDirs)
 
 foreach(EXECUTABLE
+  constraint_programming_cp
   costas_array_sat
   cvrp_disjoint_tw
   cvrptw
@@ -40,17 +41,23 @@ foreach(EXECUTABLE
   mps_driver
   network_routing_sat
   nqueens
-  random_tsp
   pdptw
+  random_tsp
   shift_minimization_sat
+  slitherlink_sat
   solve
   sports_scheduling_sat
+  stigler_diet
   strawberry_fields_with_column_generation
+  uncapacitated_facility_location
+  variable_intervals_sat
   weighted_tardiness_sat)
   add_executable(${EXECUTABLE} ${EXECUTABLE}.cc)
   target_include_directories(${EXECUTABLE} PUBLIC ${PARENT_SOURCE_DIR})
-  target_compile_features(${EXECUTABLE} PRIVATE cxx_std_11)
+  target_compile_features(${EXECUTABLE} PRIVATE cxx_std_17)
   target_link_libraries(${EXECUTABLE} PRIVATE ortools::ortools)
+  set_target_properties(${EXECUTABLE} PROPERTIES
+    INSTALL_RPATH_USE_LINK_PATH TRUE)
   install(TARGETS ${EXECUTABLE}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endforeach()
@@ -83,7 +90,10 @@ foreach(TEST
     #shift_minimization_sat
     #solve
     #sports_scheduling_sat # Too long
+    #stigler_diet
     #strawberry_fields_with_column_generation # Too long
+    uncapacitated_facility_location
+    #variable_intervals_sat
     #weighted_tardiness_sat
     )
   add_test(NAME cc_${TEST} COMMAND ${TEST})

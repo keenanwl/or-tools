@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:16.04 AS env
 
 #############
 ##  SETUP  ##
@@ -6,17 +6,48 @@ FROM ubuntu:16.04
 RUN apt update -qq \
 && apt install -yq \
  git pkg-config wget make cmake autoconf libtool zlib1g-dev gawk g++ curl subversion \
- lsb-release \
+ lsb-release libpcre3-dev \
 && apt clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Swig Install
-RUN apt-get update -qq \
-&& apt-get install -yq swig \
-&& apt-get clean \
+# Install gcc 7
+RUN apt update -qq \
+&& apt install -yq software-properties-common \
+&& add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+&& apt update -qq \
+&& apt install -yq g++-7 \
+&& apt clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Configure alias
+RUN update-alternatives \
+ --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 \
+ --slave /usr/bin/g++ g++ /usr/bin/g++-7 \
+ --slave /usr/bin/gcov gcov /usr/bin/gcov-7 \
+ --slave /usr/bin/gcov-tool gcov-tool /usr/bin/gcov-tool-7 \
+ --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-7 \
+ --slave /usr/bin/gcc-nm gcc-nm /usr/bin/gcc-nm-7 \
+ --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-7
 
-# Java install
+# Install CMake 3.18.1
+RUN wget "https://cmake.org/files/v3.18/cmake-3.18.1-Linux-x86_64.sh" \
+&& chmod a+x cmake-3.18.1-Linux-x86_64.sh \
+&& ./cmake-3.18.1-Linux-x86_64.sh --prefix=/usr/local/ --skip-license \
+&& rm cmake-3.18.1-Linux-x86_64.sh
+
+# Install SWIG 4.0.2
+RUN curl --location-trusted \
+ --remote-name "https://downloads.sourceforge.net/project/swig/swig/swig-4.0.2/swig-4.0.2.tar.gz" \
+ -o swig-4.0.2.tar.gz \
+&& tar xvf swig-4.0.2.tar.gz \
+&& rm swig-4.0.2.tar.gz \
+&& cd swig-4.0.2 \
+&& ./configure --prefix=/usr \
+&& make -j 4 \
+&& make install \
+&& cd .. \
+&& rm -rf swig-4.0.2
+
+# Install Java OpenJDK 8
 RUN apt-get update -qq \
 && apt-get install -yq openjdk-8-jdk \
 && apt-get clean \
@@ -32,17 +63,20 @@ RUN apt-get update -qq \
 && apt-get install -yq dotnet-sdk-3.1 \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Trigger first run experience by running arbitrary cmd
+RUN dotnet --info
 
 ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
+################
+##  OR-TOOLS  ##
+################
+FROM env AS devel
 # Copy the snk key
 COPY or-tools.snk /root/or-tools.snk
 ENV DOTNET_SNK=/root/or-tools.snk
 
-################
-##  OR-TOOLS  ##
-################
 ARG SRC_GIT_BRANCH
 ENV SRC_GIT_BRANCH ${SRC_GIT_BRANCH:-master}
 ARG SRC_GIT_SHA1
@@ -56,9 +90,13 @@ RUN git clone -b "${SRC_GIT_BRANCH}" --single-branch https://github.com/google/o
 && echo "sha1: $(cd or-tools && git rev-parse --verify HEAD)" \
 && echo "expected sha1: ${SRC_GIT_SHA1}"
 
-# Prebuild
+# Build third parties
+FROM devel AS third_party
 WORKDIR /root/or-tools
 RUN make detect && make third_party
+
+# Build project
+FROM third_party AS build
 RUN make detect_cc && make cc
 RUN make detect_java && make java
 RUN make detect_dotnet && make dotnet
