@@ -18,6 +18,7 @@ syntax = "proto3";
 option java_package = "com.google.ortools.constraintsolver";
 option java_multiple_files = true;
 option csharp_namespace = "Google.OrTools.ConstraintSolver";
+option go_package = "ortools/go/constraint_solver/gen";
 
 package operations_research;
 

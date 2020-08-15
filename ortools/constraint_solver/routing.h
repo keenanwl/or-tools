@@ -2315,7 +2315,7 @@ class RoutingDimension {
   const std::vector<IntVar*>& fixed_transits() const { return fixed_transits_; }
   const std::vector<IntVar*>& transits() const { return transits_; }
   const std::vector<IntVar*>& slacks() const { return slacks_; }
-#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
+#if !defined(SWIGCSHARP) && !defined(SWIGJAVA) && !defined(SWIGGO)
   /// Returns forbidden intervals for each node.
   const std::vector<SortedDisjointIntervalList>& forbidden_intervals() const {
     return forbidden_intervals_;
@@ -2385,7 +2385,7 @@ class RoutingDimension {
         [class_evaluators_[vehicle_to_class_[vehicle]]];
   }
   int vehicle_to_class(int vehicle) const { return vehicle_to_class_[vehicle]; }
-#endif  /// !defined(SWIGCSHARP) && !defined(SWIGJAVA)
+#endif  /// !defined(SWIGCSHARP) && !defined(SWIGJAVA) && !defined(SWIGGO)
 #endif  /// !defined(SWIGPYTHON)
   /// Sets an upper bound on the dimension span on a given vehicle. This is the
   /// preferred way to limit the "length" of the route of a vehicle according to
