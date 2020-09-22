@@ -12,7 +12,7 @@ endif
 
 GO_BIN = $(shell $(WHICH) go)
 GO_PATH = $(shell [ -z "${GOPATH}" ] || echo $(GOPATH))
-GO_OR_TOOLS_NATIVE_LIBS := $(LIB_DIR)/$(LIB_PREFIX)goortools.$(SWIG_GO_LIB_EXT)
+GO_OR_TOOLS_NATIVE_LIBS := $(LIB_DIR)/$(LIB_PREFIX)goortools.$(SWIG_GO_LIB_SUFFIX)
 
 HAS_GO = true
 ifndef GO_BIN
@@ -226,7 +226,7 @@ $(GO_OR_TOOLS_NATIVE_LIBS): \
   $(OBJ_DIR)/swig/sat_go_wrap.$O \
   $(OBJ_DIR)/swig/graph_go_wrap.$O \
   $(OBJ_DIR)/swig/util_go_wrap.$O
-	$(DYNAMIC_LD) $(LD_OUT)$(LIB_DIR)$S$(LIB_PREFIX)goortools.$(SWIG_GO_LIB_EXT) \
+	$(DYNAMIC_LD) $(LD_OUT)$(LIB_DIR)$S$(LIB_PREFIX)goortools.$(SWIG_GO_LIB_SUFFIX) \
   $(OBJ_DIR)$Sswig$Sconstraint_solver_go_wrap.$O \
   $(OBJ_DIR)$Sswig$Sgraph_go_wrap.$O \
   $(OBJ_DIR)$Sswig$Slinear_solver_go_wrap.$O \
@@ -284,7 +284,7 @@ clean_go:
 	-$(DEL) $(GEN_PATH)$Sortools$Ssat$S*go_wrap*
 	-$(DEL) $(GEN_PATH)$Sortools$Sutil$S*go_wrap*
 	-$(DEL) $(OBJ_DIR)$Sswig$S*go_wrap*
-	-$(DEL) $(LIB_DIR)$S$(LIB_PREFIX)goortools.$(SWIG_GO_LIB_EXT)
+	-$(DEL) $(LIB_DIR)$S$(LIB_PREFIX)goortools.$(SWIG_GO_LIB_SUFFIX)
 
 
 #############
