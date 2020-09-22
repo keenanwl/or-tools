@@ -252,14 +252,16 @@ go_pimpl: \
 	$(GEN_DIR)/ortools/sat/sat_go_wrap.cc \
 	$(GO_OR_TOOLS_NATIVE_LIBS)
 	cd ortools/go/linear_solver; \
-	CGO_LDFLAGS="-L$(OR_TOOLS_TOP)/lib -lgoortools -v" \
+	CGO_LDFLAGS="-L$(OR_TOOLS_TOP)/lib -lgoortools -v -Wl,--unresolved-symbols=ignore-all" \
 	go build;
 
+# -Wl,--unresolved-symbols=ignore-all  ------>
+# https://github.com/golang/go/issues/12216#issuecomment-169465786
 # LD_LIBRARY_PATH -> Linux
 # DYLD_LIBRARY_PATH -> Mac OS
 test_go_pimpl: go_pimpl
 	cd ortools/go; \
-	CGO_LDFLAGS="-L$(OR_TOOLS_TOP)/lib -lgoortools -v" \
+	CGO_LDFLAGS="-L$(OR_TOOLS_TOP)/lib -lgoortools -v -Wl,--unresolved-symbols=ignore-all" \
 	LD_LIBRARY_PATH="$(OR_TOOLS_TOP)/dependencies/install/lib:$(OR_TOOLS_TOP)/lib:" \
 	DYLD_LIBRARY_PATH="$(OR_TOOLS_TOP)/dependencies/install/lib:$(OR_TOOLS_TOP)/lib:" \
 	go test -v ./...;
@@ -296,6 +298,8 @@ detect_go:
 	@echo GO_PATH = $(GO_PATH)
 	@echo PROTOC_GEN_GO = $(PROTOC_GEN_GO)
 	@echo GO_OR_TOOLS_NATIVE_LIBS = $(GO_OR_TOOLS_NATIVE_LIBS)
+	@echo SWIG_INC = $(SWIG_INC)
+	@echo DYNAMIC_LD = $(DYNAMIC_LD)
 
 ifeq ($(SYSTEM),win)
 	@echo off & echo(
