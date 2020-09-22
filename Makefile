@@ -124,7 +124,7 @@ check_all: check_cc check_python check_java check_dotnet check_go
 	@echo Or-tools have been built and checked for $(BUILT_LANGUAGES)
 
 .PHONY: test_all
-test_all: test_cc test_python test_java test_dotnet test_all
+test_all: test_cc test_python test_java test_dotnet test_go
 	@echo Or-tools have been built and tested for $(BUILT_LANGUAGES)
 
 .PHONY: clean_all
