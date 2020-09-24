@@ -17,7 +17,7 @@ package operations_research.sat;
 
 option java_package = "com.google.ortools.sat";
 option java_multiple_files = true;
-option go_package = "ortools/go/sat/gen";
+option go_package = "ortools/gen/ortools/go/sat";
 
 // Contains the definitions for all the sat algorithm parameters and their
 // default values.

@@ -23,7 +23,7 @@ option java_multiple_files = true;
 // java/constraint_solver.swig).
 option java_outer_classname = "SearchLimitProtobuf";
 option csharp_namespace = "Google.OrTools.ConstraintSolver";
-option go_package = "ortools/go/constraint_solver/gen";
+option go_package = "ortools/gen/ortools/go/constraint_solver";
 
 package operations_research;
 

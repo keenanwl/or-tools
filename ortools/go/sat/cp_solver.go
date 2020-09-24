@@ -3,36 +3,36 @@ package sat
 import (
 	"fmt"
 
-	"ortools/go/sat/gen"
+	genSat "ortools/gen/ortools/go/sat"
 )
 
 type CpSolver struct {
-	solveParameters *gen.CpModelProto
+	solveParameters *genSat.CpModelProto
 }
 
-type CpSolverResponse gen.CpSolverResponse
+type CpSolverResponse genSat.CpSolverResponse
 
 func NewCpSolver() *CpSolver {
 	return &CpSolver{}
 }
 
-func (s *CpSolver) Solve(model CpModel) gen.CpSolverResponse {
+func (s *CpSolver) Solve(model CpModel) genSat.CpSolverResponse {
 
 	//fmt.Println(model.proto.String())
 	allSolutions := false
-	return gen.SatHelperSolveWithParameters(*model.proto, gen.SatParameters{
+	return genSat.SatHelperSolveWithParameters(*model.proto, genSat.SatParameters{
 		EnumerateAllSolutions: &allSolutions,
 	})
 
 }
 
 type GoCallback interface {
-	gen.SolutionCallback
+	genSat.SolutionCallback
 	deleteCallback()
 	IsGoCallback()
 }
 type goCallback struct {
-	gen.SolutionCallback
+	genSat.SolutionCallback
 }
 
 func (p *goCallback) deleteCallback() {
@@ -42,7 +42,7 @@ func (p *goCallback) deleteCallback() {
 func (p *goCallback) IsGoCallback() {}
 
 type overwrittenMethodsOnCallback struct {
-	p        gen.SolutionCallback
+	p        genSat.SolutionCallback
 	callback func(response CpSolverResponse)
 }
 
@@ -54,7 +54,7 @@ func (om *overwrittenMethodsOnCallback) OnSolutionCallback() {
 
 func NewGoCallback(callback func(response CpSolverResponse)) GoCallback {
 	om := &overwrittenMethodsOnCallback{callback: callback}
-	p := gen.NewDirectorSolutionCallback(om)
+	p := genSat.NewDirectorSolutionCallback(om)
 	om.p = p
 
 	return &goCallback{SolutionCallback: p}
@@ -73,9 +73,9 @@ func (s *CpSolver) SolveAllSolutions(model CpModel, callback func(response CpSol
 	cb := NewGoCallback(callback)
 
 	allSolutions := true
-	se := gen.SatHelperSolveWithParametersAndSolutionCallback(
+	se := genSat.SatHelperSolveWithParametersAndSolutionCallback(
 		*model.proto,
-		gen.SatParameters{
+		genSat.SatParameters{
 			EnumerateAllSolutions: &allSolutions,
 		},
 		cb,

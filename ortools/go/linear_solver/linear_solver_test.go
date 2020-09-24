@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"testing"
 
-	"ortools/go/linear_solver/gen"
+	genLinearSolver "ortools/gen/ortools/go/linear_solver"
 )
 
 func recoverGlog() {
@@ -45,7 +45,7 @@ func SetupCloseHandler() {
 
 	//SetupCloseHandler()
 
-	solver := gen.NewSolver("My_solver_name", gen.MPSolverCBC_MIXED_INTEGER_PROGRAMMING)
+	solver := genLinearSolver.NewSolver("My_solver_name", genLinearSolver.MPSolverCBC_MIXED_INTEGER_PROGRAMMING)
 
 	solver.MakeConstraint("my_const_name")
 	c := solver.MakeConstraint("my_const_name")
@@ -55,7 +55,7 @@ func SetupCloseHandler() {
 	//t.Fatal("Expected duplicate constraint to not be present")
 	//}
 
-	if solver.Solve() == gen.MPSolverOptimal {
+	if solver.Solve() == genLinearSolver.MPSolverOptimal {
 		t.Fatal("Expected duplicate constraint name to produce error")
 	}
 
@@ -66,9 +66,9 @@ func TestBooleanProgramming(t *testing.T) {
 
 	fmt.Printf(
 		"----------------%v----------------\n",
-		gen.MPModelRequest_SolverType_name[int32(gen.MPSolverBOP_INTEGER_PROGRAMMING)])
+		genLinearSolver.MPModelRequest_SolverType_name[int32(genLinearSolver.MPSolverBOP_INTEGER_PROGRAMMING)])
 
-	solver := gen.NewSolver("BooleanProgrammingExample", gen.MPSolverBOP_INTEGER_PROGRAMMING)
+	solver := genLinearSolver.NewSolver("BooleanProgrammingExample", genLinearSolver.MPSolverBOP_INTEGER_PROGRAMMING)
 
 	x := solver.MakeBoolVar("x")
 	y := solver.MakeBoolVar("y")
@@ -81,7 +81,7 @@ func TestBooleanProgramming(t *testing.T) {
 	c0.SetCoefficient(x, 1.0)
 	c0.SetCoefficient(y, 2.0)
 
-	err := SolveAndPrint(solver, []gen.MPVariable{x, y}, []gen.MPConstraint{c0})
+	err := SolveAndPrint(solver, []genLinearSolver.MPVariable{x, y}, []genLinearSolver.MPConstraint{c0})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,9 +92,9 @@ func TestMixedIntegerProgramming(t *testing.T) {
 
 	fmt.Printf(
 		"----------------%v----------------\n",
-		gen.MPModelRequest_SolverType_name[int32(gen.MPSolverCBC_MIXED_INTEGER_PROGRAMMING)])
+		genLinearSolver.MPModelRequest_SolverType_name[int32(genLinearSolver.MPSolverCBC_MIXED_INTEGER_PROGRAMMING)])
 
-	solver := gen.NewSolver("MixedIntegerProgrammingExample", gen.MPSolverCBC_MIXED_INTEGER_PROGRAMMING)
+	solver := genLinearSolver.NewSolver("MixedIntegerProgrammingExample", genLinearSolver.MPSolverCBC_MIXED_INTEGER_PROGRAMMING)
 
 	x := solver.MakeIntVar(0.0, math.Inf(1), "x")
 	y := solver.MakeIntVar(0.0, math.Inf(1), "Y")
@@ -111,7 +111,7 @@ func TestMixedIntegerProgramming(t *testing.T) {
 	c1.SetCoefficient(x, 1)
 	c1.SetCoefficient(y, 0)
 
-	err := SolveAndPrint(solver, []gen.MPVariable{x, y}, []gen.MPConstraint{c0, c1})
+	err := SolveAndPrint(solver, []genLinearSolver.MPVariable{x, y}, []genLinearSolver.MPConstraint{c0, c1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,9 +122,9 @@ func TestLinearProgramming(t *testing.T) {
 
 	fmt.Printf(
 		"----------------%v----------------\n",
-		gen.MPModelRequest_SolverType_name[int32(gen.MPSolverCLP_LINEAR_PROGRAMMING)])
+		genLinearSolver.MPModelRequest_SolverType_name[int32(genLinearSolver.MPSolverCLP_LINEAR_PROGRAMMING)])
 
-	solver := gen.NewSolver("LinearProgrammingExample", gen.MPSolverCLP_LINEAR_PROGRAMMING)
+	solver := genLinearSolver.NewSolver("LinearProgrammingExample", genLinearSolver.MPSolverCLP_LINEAR_PROGRAMMING)
 
 	x := solver.MakeNumVar(0.0, math.Inf(1), "x")
 	y := solver.MakeNumVar(0.0, math.Inf(1), "y")
@@ -145,21 +145,21 @@ func TestLinearProgramming(t *testing.T) {
 	c2.SetCoefficient(x, 1)
 	c2.SetCoefficient(y, -1)
 
-	err := SolveAndPrint(solver, []gen.MPVariable{x, y}, []gen.MPConstraint{c0, c1, c2})
+	err := SolveAndPrint(solver, []genLinearSolver.MPVariable{x, y}, []genLinearSolver.MPConstraint{c0, c1, c2})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 }
 
-func SolveAndPrint(solver gen.MPSolver, variables []gen.MPVariable, constraints []gen.MPConstraint) error {
+func SolveAndPrint(solver genLinearSolver.MPSolver, variables []genLinearSolver.MPVariable, constraints []genLinearSolver.MPConstraint) error {
 
 	fmt.Printf("Number of variables = %v\n", solver.NumVariables())
 	fmt.Printf("Number of constraints = %v\n", solver.NumConstraints())
 
 	status := solver.Solve()
 
-	if status != gen.MPSolverOptimal {
+	if status != genLinearSolver.MPSolverOptimal {
 		return errors.New("The problem does not have an optimal solution!")
 	}
 

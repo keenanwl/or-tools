@@ -76,7 +76,5 @@ examples/contrib/obj
 examples/dotnet/bin
 examples/dotnet/obj
 
-ortools/go/*/gen/
-
 # Release key
 tools/docker/or-tools.snk

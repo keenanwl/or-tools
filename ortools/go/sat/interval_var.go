@@ -1,11 +1,11 @@
 package sat
 
-import "ortools/go/sat/gen"
+import genSat "ortools/gen/ortools/go/sat"
 
 type intervalVar struct {
-	modelProto *gen.CpModelProto
+	modelProto *genSat.CpModelProto
 	varIndex   int
-	VarProto   *gen.IntervalConstraintProto
+	VarProto   *genSat.IntervalConstraintProto
 }
 
 var domains = make(map[int]bool, 0)
@@ -17,7 +17,7 @@ var domains = make(map[int]bool, 0)
 // Internally, it ensures that `start + size == end`.
 func (m *CpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name string) *intervalVar {
 
-	varProto := gen.IntervalConstraintProto{
+	varProto := genSat.IntervalConstraintProto{
 		Start: int32(start.Index()),
 		Size:  int32(m.IndexFromConstant(sizeIndex, name)),
 		End:   int32(end.Index()),
@@ -29,10 +29,10 @@ func (m *CpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name s
 		VarProto:   &varProto,
 	}
 
-	cp := gen.ConstraintProto{
+	cp := genSat.ConstraintProto{
 		Name:               name,
 		EnforcementLiteral: nil,
-		Constraint: &gen.ConstraintProto_Interval{
+		Constraint: &genSat.ConstraintProto_Interval{
 			Interval: &varProto,
 		},
 	}
@@ -45,7 +45,7 @@ func (m *CpModel) NewIntervalVar(start IntVar, sizeIndex int, end IntVar, name s
 
 func (m *CpModel) NewFixedInterval(startIndex int, sizeIndex int, name string) *intervalVar {
 
-	varProto := gen.IntervalConstraintProto{
+	varProto := genSat.IntervalConstraintProto{
 		Start: int32(m.IndexFromConstant(startIndex, name)),
 		Size:  int32(sizeIndex),
 		End:   int32(m.IndexFromConstant(startIndex+sizeIndex, name)),
@@ -57,10 +57,10 @@ func (m *CpModel) NewFixedInterval(startIndex int, sizeIndex int, name string) *
 		VarProto:   &varProto,
 	}
 
-	cp := gen.ConstraintProto{
+	cp := genSat.ConstraintProto{
 		Name:               name,
 		EnforcementLiteral: nil,
-		Constraint: &gen.ConstraintProto_Interval{
+		Constraint: &genSat.ConstraintProto_Interval{
 			Interval: &varProto,
 		},
 	}
@@ -75,7 +75,7 @@ func (m *CpModel) IndexFromConstant(constant int, name string) int {
 
 	variableCount := m.VariableCount()
 
-	ivp := &gen.IntegerVariableProto{
+	ivp := &genSat.IntegerVariableProto{
 		Name:   name,
 		Domain: []int64{int64(constant), int64(constant)},
 	}

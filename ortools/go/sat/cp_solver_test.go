@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"ortools/go/sat/gen"
+	genSat "ortools/gen/ortools/go/sat"
 )
 
 func TestCrashInPresolve(t *testing.T) {
@@ -24,7 +24,7 @@ func TestCrashInPresolve(t *testing.T) {
 	solver := CpSolver{}
 	status := solver.Solve(*model)
 
-	if status.Status != gen.CpSolverStatus_INFEASIBLE {
+	if status.Status != genSat.CpSolverStatus_INFEASIBLE {
 		t.Fatalf("expected status: Infeasible, got status: %s", status.Status)
 	}
 
@@ -63,7 +63,7 @@ func TestCpModel_TestCrashInSolveWithAllowedAssignment(t *testing.T) {
 	solver := CpSolver{}
 	status := solver.Solve(*model)
 
-	if status.Status != gen.CpSolverStatus_INFEASIBLE {
+	if status.Status != genSat.CpSolverStatus_INFEASIBLE {
 		t.Fatalf("expecting status infeasible, got: %s", status.Status)
 	}
 
@@ -139,7 +139,7 @@ func TestCpModel_CrashEquality(t *testing.T) {
 
 	solver := CpSolver{}
 	status := solver.Solve(*model)
-	if status.Status != gen.CpSolverStatus_INFEASIBLE {
+	if status.Status != genSat.CpSolverStatus_INFEASIBLE {
 		t.Fatalf("expected infeasible, got: %s", status.Status)
 	}
 
@@ -226,7 +226,7 @@ func TestCpModel_Sudoku_sat(t *testing.T) {
 	solver := CpSolver{}
 	status := solver.Solve(*model)
 
-	if status.Status != gen.CpSolverStatus_OPTIMAL {
+	if status.Status != genSat.CpSolverStatus_OPTIMAL {
 		t.Fatalf("expecting status optimal, got: %s", status.Status)
 	}
 
@@ -285,7 +285,7 @@ func TestCpModel_Schedule_NoOverlap(t *testing.T) {
 	solver := CpSolver{}
 	status := solver.Solve(*model)
 
-	if status.Status != gen.CpSolverStatus_OPTIMAL {
+	if status.Status != genSat.CpSolverStatus_OPTIMAL {
 		t.Fatalf("expecting solver status to be optimal, got %s", status.Status)
 	}
 

@@ -1,9 +1,9 @@
 package linear_solver
 
-import "ortools/go/linear_solver/gen"
+import "ortools/gen/ortools/go/linear_solver"
 
 type MPModel struct {
-	proto *gen.MPModelProto
+	proto *linear_solver.MPModelProto
 }
 
 func (m *MPModel) SetName(name string) {

@@ -3,7 +3,7 @@ package sat
 import (
 	"testing"
 
-	"ortools/go/sat/gen"
+	genSat "ortools/gen/ortools/go/sat"
 )
 
 // TODO us assert and cmp libs
@@ -38,7 +38,7 @@ func TestCpModel_Validate(t *testing.T) {
 
 	solver := CpSolver{}
 	out := solver.Solve(*cpModel)
-	if out.Status != gen.CpSolverStatus_OPTIMAL {
+	if out.Status != genSat.CpSolverStatus_OPTIMAL {
 		t.Error("CP Model solution is not optimal")
 	}
 

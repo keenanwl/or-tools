@@ -3,22 +3,22 @@ package sat
 import (
 	"fmt"
 
-	"ortools/go/sat/gen"
+	genSat "ortools/gen/ortools/go/sat"
 )
 
 type IntVar struct {
-	modelProto *gen.CpModelProto
+	modelProto *genSat.CpModelProto
 	varIndex   int
-	VarProto   *gen.IntegerVariableProto
+	VarProto   *genSat.IntegerVariableProto
 	negation   *notBoolVar
 }
 
-func NewIntVarLowerUpperBounds(modelProto *gen.CpModelProto, lb int64, ub int64, name string) *IntVar {
+func NewIntVarLowerUpperBounds(modelProto *genSat.CpModelProto, lb int64, ub int64, name string) *IntVar {
 	return NewIntVarBounds(modelProto, []int64{lb, ub}, name)
 }
 
-func NewIntVarBounds(modelProto *gen.CpModelProto, bounds []int64, name string) *IntVar {
-	varProto := gen.IntegerVariableProto{
+func NewIntVarBounds(modelProto *genSat.CpModelProto, bounds []int64, name string) *IntVar {
+	varProto := genSat.IntegerVariableProto{
 		Name:   name,
 		Domain: bounds,
 	}

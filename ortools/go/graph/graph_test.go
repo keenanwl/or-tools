@@ -3,12 +3,12 @@ package graph
 import (
 	"testing"
 
-	"ortools/go/graph/gen"
+	genGraph "ortools/gen/ortools/go/graph"
 )
 
 func Test_MinCostFlow_solveMinCostFlow(t *testing.T) {
 
-	minCostFlow := gen.NewMinCostFlow()
+	minCostFlow := genGraph.NewMinCostFlow()
 	numSources := 4
 	numTargets := 4
 	expectedCost := 275
@@ -31,7 +31,7 @@ func Test_MinCostFlow_solveMinCostFlow(t *testing.T) {
 		minCostFlow.SetNodeSupply(numSources+node, -1)
 	}
 
-	if minCostFlow.Solve() == gen.MinCostFlowBaseOPTIMAL {
+	if minCostFlow.Solve() == genGraph.MinCostFlowBaseOPTIMAL {
 		totalFlowCost := minCostFlow.GetOptimalCost()
 		t.Logf("total flow = %v/%v\n", totalFlowCost, expectedCost)
 
@@ -53,13 +53,13 @@ func Test_SolverMaxFlow(t *testing.T) {
 	capacities := []int{5, 8, 5, 3, 4, 5, 6, 6, 4}
 	expectedTotalFlow := 10
 
-	maxFlow := gen.NewMaxFlow()
+	maxFlow := genGraph.NewMaxFlow()
 
 	for i := 0; i < len(tails); i++ {
 		maxFlow.AddArcWithCapacity(tails[i], heads[i], int64(capacities[i]))
 	}
 
-	if maxFlow.Solve(0, 5) == gen.MaxFlowOPTIMAL {
+	if maxFlow.Solve(0, 5) == genGraph.MaxFlowOPTIMAL {
 		t.Logf("Total flow %v / %v", maxFlow.GetOptimalFlow(), expectedTotalFlow)
 		for i := 0; i < maxFlow.GetNumArcs(); i++ {
 			t.Logf(

@@ -16,7 +16,7 @@ syntax = "proto3";
 option java_package = "com.google.ortools.util";
 option java_multiple_files = true;
 option csharp_namespace = "Google.OrTools.Util";
-option go_package = "ortools/go/util/gen";
+option go_package = "ortools/gen/ortools/go/util";
 
 package operations_research;
 
